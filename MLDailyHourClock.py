@@ -1,36 +1,41 @@
 import cv2
-import os
 import time
 from datetime import datetime
+from pathlib import Path
 
-# Konfiguracja
-OUTPUT_DIR = "dataset"     # katalog bazowy na dane
-CSV_PATH = "labels.csv"    # plik z etykietami (ścieżka_do_pliku,godzina,datetime)
-CAMERA_INDEX = 0           # indeks kamery (0 – zazwyczaj domyślna kamera)
+from src.settings import DATA_DIR, LABELS_CSV
+
+CAMERA_INDEX = 0
+
 
 def main():
-    # Utworzenie katalogu bazowego, jeśli nie istnieje
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
+    output_dir: Path = DATA_DIR.resolve()
+    csv_path: Path = LABELS_CSV.resolve()
 
-    # Inicjalizacja kamery
+    # --- przygotowanie katalogów ---
+    output_dir.mkdir(parents=True, exist_ok=True)
+    csv_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # --- kamera ---
     cap = cv2.VideoCapture(CAMERA_INDEX)
     if not cap.isOpened():
-        print("Nie można otworzyć kamery. Sprawdź podłączenie i indeks kamery.")
+        print("❌ Nie można otworzyć kamery.")
         return
 
-    print("Start zbierania danych. Przerwij działanie skryptu Ctrl+C.")
+    print("▶ Start zbierania danych (Ctrl+C aby przerwać)")
+    print(f"Dataset : {output_dir}")
+    print(f"Labels  : {csv_path}")
 
-    # Utworzenie pliku CSV z nagłówkiem, jeśli nie istnieje
-    if not os.path.exists(CSV_PATH):
-        with open(CSV_PATH, "w", encoding="utf-8") as f:
+    # --- CSV nagłówek ---
+    if not csv_path.exists():
+        with csv_path.open("w", encoding="utf-8") as f:
             f.write("filepath,hour,datetime\n")
 
     try:
         while True:
-            # Pobranie klatki z kamery
             ret, frame = cap.read()
             if not ret:
-                print("Błąd odczytu z kamery.")
+                print("❌ Błąd odczytu z kamery.")
                 break
 
             now = datetime.now()
@@ -38,39 +43,38 @@ def main():
             year = now.strftime("%Y")
             month = now.strftime("%m")
             day = now.strftime("%d")
-            hour_int = now.hour              # etykieta: godzina jako int 0–23
-            hour_str = f"{hour_int:02d}"     # wersja z zerem wiodącym
+            hour_int = now.hour
+            hour_str = f"{hour_int:02d}"
             timestamp = now.strftime("%Y%m%d_%H%M%S")
 
-            # Struktura katalogów:
             # dataset/YYYY/MM/DD/HH/
-            hour_dir = os.path.join(OUTPUT_DIR, year, month, day, hour_str)
-            os.makedirs(hour_dir, exist_ok=True)
+            hour_dir = output_dir / year / month / day / hour_str
+            hour_dir.mkdir(parents=True, exist_ok=True)
 
-            # nazwa pliku: np. 20251129_153045.jpg
             filename = f"{timestamp}.jpg"
-            filepath = os.path.join(hour_dir, filename)
+            full_path = hour_dir / filename
 
             # zapis obrazu
-            cv2.imwrite(filepath, frame)
+            cv2.imwrite(str(full_path), frame)
 
-            # dopisanie etykiety do CSV
-            # datetime w ISO ułatwia później analizy (np. filtr po dacie)
-            with open(CSV_PATH, "a", encoding="utf-8") as f:
-                f.write(f"{filepath},{hour_int},{now.isoformat()}\n")
+            # 👉 ZAPIS ŚCIEŻKI WZGLĘDNEJ
+            relative_path = full_path.relative_to(output_dir)
 
-            print(f"Zapisano: {filepath} (godzina={hour_int})")
+            with csv_path.open("a", encoding="utf-8") as f:
+                f.write(f"{relative_path.as_posix()},{hour_int},{now.isoformat()}\n")
 
-            # czekamy ~1 sekundę do kolejnego zrzutu
+            print(f"✔ {relative_path} (godzina={hour_int})")
+
             time.sleep(1)
 
     except KeyboardInterrupt:
-        print("\nPrzerwano przez użytkownika. Kończenie...")
+        print("\n⏹ Przerwano przez użytkownika.")
 
     finally:
         cap.release()
         cv2.destroyAllWindows()
-        print("Kamera zwolniona, koniec pracy.")
+        print("✔ Kamera zwolniona, koniec pracy.")
+
 
 if __name__ == "__main__":
     main()
