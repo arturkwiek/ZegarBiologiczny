@@ -1,0 +1,25 @@
+# ===== Python =====
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# ===== Virtual environment =====
+.venv/
+
+# ===== Data =====
+dataset/
+labels.csv
+
+# ===== Notebooks =====
+.ipynb_checkpoints/
+
+# ===== Reports / generated outputs =====
+reports/*
+!reports/.gitkeep
+
+# ===== OS / editor =====
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
