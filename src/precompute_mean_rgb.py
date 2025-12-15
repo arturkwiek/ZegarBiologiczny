@@ -4,21 +4,24 @@ from pathlib import Path
 import pandas as pd
 from tqdm import tqdm
 
-from .load_data import load_labels, DATA_ROOT
+from .load_data import load_labels
+from src.settings import DATA_DIR, LABELS_CSV
+
 from .utils import extract_mean_rgb
 
 OUTPUT_PATH = Path("features_mean_rgb.csv")
 
 
 def main() -> None:
-    df = load_labels()
+    labels_path = LABELS_CSV or Path("labels.csv")
+    df = load_labels(labels_path)
     print("Liczba rekordów w labels.csv:", len(df))
 
     rows = []
 
     for _, row in tqdm(df.iterrows(), total=len(df)):
         rel_path = str(row["filepath"])
-        full_path = DATA_ROOT / rel_path
+        full_path = DATA_DIR / rel_path
 
         feat = extract_mean_rgb(full_path)
         if feat is None:
