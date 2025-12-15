@@ -11,7 +11,11 @@ import seaborn as sns
 import pandas as pd
 
 from src.load_data import load_labels
-
+try:
+    from src.settings import DATA_DIR, LABELS_CSV
+except ImportError:
+    DATA_DIR = None
+    LABELS_CSV = None
 
 def add_date_column(df: pd.DataFrame) -> pd.DataFrame:
     """
@@ -54,7 +58,9 @@ def plot_samples_per_day(df: pd.DataFrame):
 
 
 if __name__ == "__main__":
-    df = load_labels()
+    
+    labels_path = LABELS_CSV or Path("labels.csv")
+    df = load_labels(labels_path)
     print("Liczba rekordów:", len(df))
     print("Przykładowe rekordy:")
     print(df.head())
