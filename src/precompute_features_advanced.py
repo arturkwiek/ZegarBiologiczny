@@ -4,14 +4,17 @@ from pathlib import Path
 import pandas as pd
 from tqdm import tqdm
 
-from .load_data import load_labels, DATA_ROOT
+from .load_data import load_labels
+from src.settings import DATA_DIR, LABELS_CSV
 from .utils import extract_rgb_hsv_stats
 
 OUTPUT_PATH = Path("features_advanced.csv")
+DATA_ROOT = Path(DATA_DIR)
 
 
 def main() -> None:
-    df = load_labels()
+    labels_path = LABELS_CSV or Path("labels.csv")
+    df = load_labels(labels_path)
     print("Liczba rekordów w labels.csv:", len(df))
 
     rows = []

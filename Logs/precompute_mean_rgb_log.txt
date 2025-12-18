@@ -1,0 +1,1 @@
+Liczba rekordów w labels.csv: 471095
