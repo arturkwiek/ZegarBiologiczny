@@ -1,0 +1,10 @@
+Liczba rekordów w labels.csv: 471095
+Gotowe cechy: (471031, 11)
+Zapisano do: features_advanced.csv
+
+
+vision@Vision-DellLaPrv:/mnt/c/Users/Dell/Desktop/Workplace/Repositories/ZegarBiologiczny$ python3 -m src.precompute_features_advanced | tee ./precompute_features_advanced_log.txt
+Liczba rekordów w labels.csv: 471095
+100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 471095/471095 [3:29:11<00:00, 37.53it/s]
+Gotowe cechy: (471031, 11)
+Zapisano do: features_advanced.csv

@@ -1,0 +1,3 @@
+Liczba rekordów w labels.csv: 471095
+Gotowe cechy: (471031, 6)
+Zapisano do: features_mean_rgb.csv
