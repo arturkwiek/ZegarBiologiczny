@@ -1,6 +1,7 @@
 # src/baseline_rgb.py
 from pathlib import Path
 
+import logging
 import numpy as np
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
@@ -12,6 +13,8 @@ from sklearn.metrics import (
 from sklearn.model_selection import train_test_split
 
 FEATURES_PATH = Path("features_mean_rgb.csv")
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s:%(message)s')
 
 
 def main() -> None:
@@ -51,6 +54,23 @@ def main() -> None:
     print(classification_report(y_test, y_pred))
     print("Macierz pomyłek:")
     print(confusion_matrix(y_test, y_pred))
+
+    num_epochs = 10  # example value, set as needed
+    train_loader = None  # replace with actual data loader
+
+    for epoch in range(num_epochs):
+        logging.info(f"Epoch {epoch+1}/{num_epochs} started.")
+        running_loss = 0.0
+        for i, data in enumerate(train_loader, 0):
+            # train step
+            loss = None  # replace with actual loss computation
+            running_loss += loss.item()
+            if i % 10 == 9:  # log every 10 batches
+                logging.info(f"[Epoch {epoch+1}, Batch {i+1}] loss: {running_loss / 10:.4f}")
+                running_loss = 0.0
+        logging.info(f"Epoch {epoch+1} finished.")
+
+    logging.info("Training completed.")
 
 
 if __name__ == "__main__":
