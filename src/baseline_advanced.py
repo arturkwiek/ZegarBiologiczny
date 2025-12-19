@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import logging
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
@@ -17,6 +18,11 @@ from sklearn.preprocessing import StandardScaler
 
 FEATURES_PATH = Path("features_advanced.csv")
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s: %(message)s"
+)
+
 
 def load_features():
     if not FEATURES_PATH.exists():
@@ -25,8 +31,9 @@ def load_features():
             f"Najpierw uruchom: python -m src.precompute_features_advanced"
         )
 
+    logging.info("Wczytywanie cech z pliku CSV...")
     df = pd.read_csv(FEATURES_PATH)
-    print("Wczytano cechy rozszerzone:", df.shape)
+    logging.info(f"Wczytano cechy rozszerzone: {df.shape}")
 
     feature_cols = [
         "r_mean",
@@ -93,9 +100,12 @@ def build_models():
 
 def main() -> None:
     # 1. Wczytanie cech
+    logging.info("Rozpoczynam wczytywanie cech...")
     X, y = load_features()
+    logging.info("Cechy wczytane.")
 
     # 2. Podział na train/test
+    logging.info("Podział na zbiór treningowy i testowy...")
     X_train, X_test, y_train, y_test = train_test_split(
         X,
         y,
@@ -103,6 +113,7 @@ def main() -> None:
         random_state=42,
         stratify=y,
     )
+    logging.info(f"Rozmiar zbioru treningowego: {X_train.shape}, testowego: {X_test.shape}")
 
     models = build_models()
 
@@ -110,9 +121,12 @@ def main() -> None:
 
     # 3. Trening i ocena każdego modelu
     for name, model in models.items():
+        logging.info(f"Trenowanie modelu: {name}")
         print(f"\n=== Trenowanie modelu: {name} ===")
         model.fit(X_train, y_train)
+        logging.info(f"Model {name} wytrenowany.")
         y_pred = model.predict(X_test)
+        logging.info(f"Predykcja zakończona dla modelu: {name}")
 
         acc = accuracy_score(y_test, y_pred)
         results[name] = {
@@ -125,6 +139,8 @@ def main() -> None:
     best_name = max(results.keys(), key=lambda n: results[n]["acc"])
     best_acc = results[best_name]["acc"]
     best_pred = results[best_name]["y_pred"]
+
+    logging.info(f"Najlepszy model: {best_name} (accuracy = {best_acc:.4f})")
 
     print("\n" + "#" * 80)
     print(f"Najlepszy model: {best_name} (accuracy = {best_acc:.4f})")
