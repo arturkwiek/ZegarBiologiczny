@@ -4,6 +4,9 @@ __pycache__/
 *.pyo
 *.pyd
 
+# ===== Models =====
+models/
+
 # ===== Virtual environment =====
 .venv/
 venv/
