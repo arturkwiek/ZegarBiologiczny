@@ -42,8 +42,19 @@ def main() -> None:
         max_iter=5000,
         n_jobs=-1,
         multi_class="auto",
+        verbose=1,
     )
+
     clf.fit(X_train, y_train)
+
+    # Zapisz wytrenowany model do pliku pickle
+    import pickle
+    models_path = Path("models/")
+    models_path.mkdir(parents=True, exist_ok=True)
+    model_path = models_path / "baseline_rgb_model.pkl"
+    with open(model_path, "wb") as f:
+        pickle.dump(clf, f)
+    print(f"Model zapisano do pliku: {model_path}")
 
     y_pred = clf.predict(X_test)
 
@@ -54,24 +65,6 @@ def main() -> None:
     print(classification_report(y_test, y_pred))
     print("Macierz pomyłek:")
     print(confusion_matrix(y_test, y_pred))
-
-    num_epochs = 10  # example value, set as needed
-    train_loader = None  # replace with actual data loader
-
-    for epoch in range(num_epochs):
-        logging.info(f"Epoch {epoch+1}/{num_epochs} started.")
-        running_loss = 0.0
-        for i, data in enumerate(train_loader, 0):
-            # train step
-            loss = None  # replace with actual loss computation
-            running_loss += loss.item()
-            if i % 10 == 9:  # log every 10 batches
-                logging.info(f"[Epoch {epoch+1}, Batch {i+1}] loss: {running_loss / 10:.4f}")
-                running_loss = 0.0
-        logging.info(f"Epoch {epoch+1} finished.")
-
-    logging.info("Training completed.")
-
 
 if __name__ == "__main__":
     main()
