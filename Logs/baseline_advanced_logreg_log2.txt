@@ -1,3 +1,4 @@
+Model zapisano do pliku: /mnt/c/Users/Dell/Desktop/Workplace/Repositories/ZegarBiologiczny/models/baseline_advanced_logreg_model.pkl
 
 === Wyniki modelu bazowego (cechy advanced + LogisticRegression) ===
 Accuracy: 0.3369188309390701
