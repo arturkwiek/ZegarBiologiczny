@@ -70,6 +70,7 @@ def main() -> None:
                     max_iter=5000,
                     n_jobs=-1,
                     multi_class="auto",
+                    verbose=1,
                 ),
             ),
         ]
@@ -78,6 +79,15 @@ def main() -> None:
     logging.info("Rozpoczynam trenowanie modelu LogisticRegression...")
     clf.fit(X_train, y_train)
     logging.info("Trenowanie zakończone.")
+
+    # Zapisz wytrenowany model do pliku pickle
+    import pickle
+    models_path = Path("models/")
+    models_path.mkdir(parents=True, exist_ok=True)
+    model_path = models_path / "baseline_advanced_logreg_model.pkl"
+    with open(model_path, "wb") as f:
+        pickle.dump(clf, f)
+    print(f"Model zapisano do pliku: {model_path}")
 
     logging.info("Predykcja na zbiorze testowym...")
     y_pred = clf.predict(X_test)
