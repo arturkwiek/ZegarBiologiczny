@@ -80,9 +80,9 @@ def main() -> None:
     clf.fit(X_train, y_train)
     logging.info("Trenowanie zakończone.")
 
-    # Zapisz wytrenowany model do pliku pickle
+    # Zapisz wytrenowany model do katalogu 'models' w katalogu głównym repozytorium
     import pickle
-    models_path = Path("models/")
+    models_path = Path(__file__).resolve().parent.parent / "models"
     models_path.mkdir(parents=True, exist_ok=True)
     model_path = models_path / "baseline_advanced_logreg_model.pkl"
     with open(model_path, "wb") as f:

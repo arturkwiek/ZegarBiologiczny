@@ -49,7 +49,7 @@ def main() -> None:
 
     # Zapisz wytrenowany model do pliku pickle
     import pickle
-    models_path = Path("models/")
+    models_path = Path(__file__).resolve().parent.parent / "models"
     models_path.mkdir(parents=True, exist_ok=True)
     model_path = models_path / "baseline_rgb_model.pkl"
     with open(model_path, "wb") as f:
