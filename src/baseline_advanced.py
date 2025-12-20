@@ -120,11 +120,23 @@ def main() -> None:
     results = {}
 
     # 3. Trening i ocena każdego modelu
+    import pickle
+    from pathlib import Path
+    models_path = Path(__file__).resolve().parent.parent / "models"
+    models_path.mkdir(parents=True, exist_ok=True)
+
     for name, model in models.items():
         logging.info(f"Trenowanie modelu: {name}")
         print(f"\n=== Trenowanie modelu: {name} ===")
         model.fit(X_train, y_train)
         logging.info(f"Model {name} wytrenowany.")
+
+        # Zapisz wytrenowany model do pliku pickle
+        model_path = models_path / f"baseline_advanced_{name}_model.pkl"
+        with open(model_path, "wb") as f:
+            pickle.dump(model, f)
+        print(f"Model {name} zapisano do pliku: {model_path}")
+
         y_pred = model.predict(X_test)
         logging.info(f"Predykcja zakończona dla modelu: {name}")
 
