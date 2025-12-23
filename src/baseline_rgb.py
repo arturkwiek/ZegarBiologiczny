@@ -18,6 +18,9 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s:%(mess
 
 
 def main() -> None:
+    import time
+    start = time.time()
+
     if not FEATURES_PATH.exists():
         raise FileNotFoundError(
             f"Brak pliku {FEATURES_PATH}. "
@@ -65,6 +68,11 @@ def main() -> None:
     print(classification_report(y_test, y_pred))
     print("Macierz pomyłek:")
     print(confusion_matrix(y_test, y_pred))
+
+    # Podsumowanie czasu trenowania
+    elapsed = time.time() - start
+    import datetime
+    print("Czas trenowania:", str(datetime.timedelta(seconds=int(elapsed))))
 
 if __name__ == "__main__":
     main()

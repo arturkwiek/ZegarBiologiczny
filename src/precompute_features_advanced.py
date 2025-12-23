@@ -17,9 +17,10 @@ def main() -> None:
     df = load_labels(labels_path)
     print("Liczba rekordów w labels.csv:", len(df))
 
-    rows = []
 
-    for _, row in tqdm(df.iterrows(), total=len(df)):
+    rows = []
+    pbar = tqdm(df.iterrows(), total=len(df))
+    for _, row in pbar:
         rel_path = str(row["filepath"])
         full_path = DATA_ROOT / rel_path
 
@@ -54,11 +55,17 @@ def main() -> None:
             }
         )
 
+
     out_df = pd.DataFrame(rows)
     print("Gotowe cechy:", out_df.shape)
 
     out_df.to_csv(OUTPUT_PATH, index=False)
     print("Zapisano do:", OUTPUT_PATH)
+
+    # Podsumowanie czasu z tqdm
+    elapsed = pbar.format_dict['elapsed']
+    import datetime
+    print("Czas przetwarzania (tqdm):", str(datetime.timedelta(seconds=int(elapsed))))
 
 
 if __name__ == "__main__":

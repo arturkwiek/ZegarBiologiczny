@@ -15,3 +15,12 @@ sudo apt install -y libxcb-xinerama0 libxcb-randr0 libxcb-render0 libxcb-shape0 
 python src\camera_hour_overlay.py --model models\baseline_rgb_model.pkl --cam 0
 python src/camera_hour_overlay_advanced.py   --model models/baseline_advanced_logreg_model.pkl   --features_csv features_advanced.csv   --cam 0
 
+
+# Serwer www
+
+zamknięcie działającego serwera
+
+lsof -t -i:8080 | xargs kill -9
+
+cd ~/www
+python3 -m http.server 8080

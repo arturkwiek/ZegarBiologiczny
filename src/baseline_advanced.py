@@ -99,6 +99,10 @@ def build_models():
 
 
 def main() -> None:
+
+    import time
+    start = time.time()
+
     # 1. Wczytanie cech
     logging.info("Rozpoczynam wczytywanie cech...")
     X, y = load_features()
@@ -164,6 +168,11 @@ def main() -> None:
 
     print("Macierz pomyłek:")
     print(confusion_matrix(y_test, best_pred))
+
+    # Podsumowanie czasu trenowania
+    elapsed = time.time() - start
+    import datetime
+    print("Czas trenowania:", str(datetime.timedelta(seconds=int(elapsed))))
 
 
 if __name__ == "__main__":
