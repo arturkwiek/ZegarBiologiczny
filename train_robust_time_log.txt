@@ -1,0 +1,54 @@
+Wczytano: (471031, 59)
+Bin size = 4, liczba klas = 6
+
+================================================================================
+Trening modelu: logreg
+Accuracy (top-1): 0.7794
+Accuracy (top-2): 0.9546
+Accuracy (top-3): 0.9919
+Circular MAE (w godzinach): 1.705
+Confident accuracy (thr=0.45): 0.8086 przy coverage=0.907
+
+================================================================================
+Trening modelu: rf
+Accuracy (top-1): 0.9266
+Accuracy (top-2): 0.9904
+Accuracy (top-3): 0.9992
+Circular MAE (w godzinach): 1.157
+Confident accuracy (thr=0.45): 0.9323 przy coverage=0.989
+
+================================================================================
+Trening modelu: gb
+Accuracy (top-1): 0.8884
+Accuracy (top-2): 0.9766
+Accuracy (top-3): 0.9962
+Circular MAE (w godzinach): 1.299
+Confident accuracy (thr=0.45): 0.8992 przy coverage=0.978
+
+################################################################################
+Najlepszy model: rf (top-1 accuracy = 0.9266)
+################################################################################
+
+Classification report (binning):
+              precision    recall  f1-score   support
+
+           0       0.75      0.87      0.81     14323
+           1       0.87      0.78      0.83     14321
+           2       1.00      1.00      1.00     14004
+           3       1.00      1.00      1.00     16534
+           4       0.99      0.96      0.98     19848
+           5       0.94      0.91      0.93     15177
+
+    accuracy                           0.93     94207
+   macro avg       0.93      0.92      0.92     94207
+weighted avg       0.93      0.93      0.93     94207
+
+
+Confusion matrix (binning):
+[[12512  1424     0     0    35   352]
+ [ 3000 11228     1     1     9    82]
+ [    0     1 14002     1     0     0]
+ [    0     0     3 16531     0     0]
+ [  229    14     0     2 19147   456]
+ [  877   202     0     0   226 13872]]
+Czas trenowania: 10:53:50
