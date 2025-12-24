@@ -1,3 +1,22 @@
+# MLDailyHourClock.py — Run: python MLDailyHourClock.py
+# MLDailyHourClock.py
+
+# Opis:
+#     Skrypt do ciągłego zbierania obrazów z kamerki i zapisywania ich w strukturze katalogów
+#     dataset/YYYY/MM/DD/HH wraz z etykietą godziny w pliku labels.csv.
+#     - Otwiera kamerę (CAMERA_INDEX)
+#     - Co sekundę zapisuje klatkę do odpowiedniego podkatalogu godzinowego
+#     - Uzupełnia/zakłada plik labels.csv ze ścieżką względną, godziną i timestampem
+#     - Tworzy brakujące katalogi i pliki (dataset/, labels.csv)
+#     - Zatrzymanie skryptu: Ctrl+C w terminalu
+
+# Zadania realizowane przez skrypt:
+#     1. Przygotowanie katalogów dataset oraz pliku labels.csv
+#     2. Otwarcie strumienia z kamery i obsługa błędów
+#     3. Okresowe zapisywanie obrazów w strukturze YYYY/MM/DD/HH
+#     4. Dopisywanie rekordów do labels.csv (filepath, hour, datetime)
+#     5. Łagodne zakończenie pracy po przerwaniu przez użytkownika
+
 import cv2
 import time
 from datetime import datetime
