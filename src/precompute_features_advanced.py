@@ -1,4 +1,20 @@
-# src/precompute_features_advanced.py
+# src/precompute_features_advanced.py — Run: python -m src.precompute_features_advanced
+# precompute_features_advanced.py
+
+# Opis:
+#     Skrypt do ekstrakcji i zapisu rozszerzonych cech RGB/HSV z obrazów na podstawie pliku labels.csv.
+#     Dla każdego obrazu:
+#       - Wczytuje ścieżki i metadane z labels.csv
+#       - Wylicza cechy: średnie i odchylenia RGB oraz średnie S i V (funkcja extract_rgb_hsv_stats)
+#       - Zapisuje wynikowe cechy do pliku features_advanced.csv
+#       - Wyświetla postęp przetwarzania (tqdm) oraz podsumowanie czasu
+
+# Zadania realizowane przez skrypt:
+#     1. Wczytanie etykiet i ścieżek do obrazów
+#     2. Ekstrakcja cech RGB/HSV dla każdego obrazu
+#     3. Zapis cech do pliku CSV
+#     4. Podsumowanie czasu przetwarzania
+
 from pathlib import Path
 
 import pandas as pd

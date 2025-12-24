@@ -1,3 +1,22 @@
+# camera_hour_overlay_advanced.py
+# Run: python -m src.camera_hour_overlay_advanced --model models/baseline_advanced_logreg_model.pkl --features_csv features_advanced.csv [--cam 0 --width 1280 --height 720 --smooth 0.6]
+# Opis:
+#     Skrypt do nakładania zaawansowanych cech obrazu oraz przewidywanej godziny na klatki z kamery.
+#     - Wczytuje model predykcji godziny (pickle)
+#     - Przetwarza obraz z kamery (OpenCV)
+#     - Ekstrahuje cechy advanced z klatki
+#     - Przewiduje godzinę na podstawie cech
+#     - Nakłada overlay z cechami i godziną na obraz
+#     - Obsługuje argumenty CLI
+
+# Zadania realizowane przez skrypt:
+#     1. Wczytanie modelu predykcji godziny
+#     2. Przetwarzanie obrazu z kamery
+#     3. Ekstrakcja cech advanced z klatki
+#     4. Predykcja godziny
+#     5. Nakładanie overlay na obraz
+#     6. Obsługa argumentów CLI
+
 import argparse
 import pickle
 from pathlib import Path

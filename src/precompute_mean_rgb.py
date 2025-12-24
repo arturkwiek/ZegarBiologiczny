@@ -1,4 +1,20 @@
-# src/precompute_mean_rgb.py
+# src/precompute_mean_rgb.py — Run: python -m src.precompute_mean_rgb
+# 
+# Opis:
+#     Skrypt do ekstrakcji i zapisu średnich wartości RGB z obrazów na podstawie pliku labels.csv.
+#     Dla każdego obrazu:
+#       - Wczytuje ścieżki i metadane z labels.csv
+#       - Wylicza średnie wartości kanałów R, G, B (funkcja extract_mean_rgb)
+#       - Zapisuje wynikowe cechy do pliku features_mean_rgb.csv
+#       - Wyświetla postęp przetwarzania (tqdm) oraz podsumowanie czasu
+
+# Zadania realizowane przez skrypt:
+#     1. Wczytanie etykiet i ścieżek do obrazów
+#     2. Ekstrakcja średnich wartości RGB dla każdego obrazu
+#     3. Zapis cech do pliku CSV
+#     4. Podsumowanie czasu przetwarzania
+
+
 from pathlib import Path
 
 import pandas as pd

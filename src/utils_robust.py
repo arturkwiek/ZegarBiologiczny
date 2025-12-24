@@ -1,3 +1,17 @@
+# utils_robust.py
+# Run: used as a library module (import src.utils_robust), not meant to be executed directly.
+
+# Opis:
+#     Zbiór funkcji pomocniczych do ekstrakcji cech robust z obrazów.
+#     - Obliczanie entropii, histogramów, statystyk obrazu
+#     - Obsługa typów danych i konwersji
+#     - Funkcje wykorzystywane w precompute_features_robust.py
+
+# Zadania realizowane przez skrypt:
+#     1. Obliczanie entropii Shannona z histogramu
+#     2. Przetwarzanie obrazów na potrzeby ekstrakcji cech robust
+#     3. Pomocnicze funkcje do obsługi danych obrazowych
+
 # src/utils_robust.py
 from __future__ import annotations
 

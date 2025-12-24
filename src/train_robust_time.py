@@ -1,4 +1,22 @@
-# src/train_robust_time.py
+# src/train_robust_time.py — Run: python -m src.train_robust_time
+# train_robust_time.py
+
+# Opis:
+#     Skrypt do trenowania i oceny modeli klasyfikacji godzin na podstawie cech robust obrazów.
+#     - Wczytuje cechy z features_robust.csv
+#     - Przeprowadza binning godzin do przedziałów
+#     - Dzieli dane na zbiór treningowy i testowy
+#     - Trenuje modele: LogisticRegression, RandomForest, GradientBoosting
+#     - Oblicza metryki klasyfikacji (top-k accuracy, circular MAE, confident accuracy)
+#     - Wybiera najlepszy model, pokazuje raport i czas trenowania
+
+# Zadania realizowane przez skrypt:
+#     1. Wczytanie cech robust z pliku CSV
+#     2. Binning godzin do przedziałów
+#     3. Podział na zbiór treningowy i testowy
+#     4. Trening i ocena modeli klasyfikacji
+#     5. Wyświetlenie metryk, raportu i czasu trenowania
+
 from __future__ import annotations
 
 from dataclasses import dataclass

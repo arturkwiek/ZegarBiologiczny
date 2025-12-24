@@ -1,4 +1,20 @@
-# src/baseline_advanced.py
+# src/baseline_advanced.py — Run: python -m src.baseline_advanced
+
+# Opis:
+#     Skrypt do trenowania bazowego modelu klasyfikacji godzin na podstawie rozszerzonych cech obrazu
+#     (features_advanced.csv: mean/std RGB + cechy HSV).
+#     - Wczytuje cechy z features_advanced.csv
+#     - Używa wybranych kolumn cech (r_mean, g_mean, b_mean, r_std, g_std, b_std, s_mean, v_mean)
+#     - Dzieli dane na zbiór treningowy i testowy
+#     - Trenuje kilka modeli klasyfikacyjnych (LogisticRegression, KNN, RandomForest, GradientBoosting)
+#     - Wybiera model o najwyższym accuracy i wyświetla szczegółowe metryki
+
+# Zadania realizowane przez skrypt:
+#     1. Wczytanie cech rozszerzonych i przygotowanie macierzy X oraz etykiet godzin y
+#     2. Podział danych na zbiory treningowy i testowy (stratyfikacja po godzinach)
+#     3. Zbudowanie zestawu modeli bazowych (build_models)
+#     4. Trening i ocena każdego modelu oraz wybór najlepszego wg accuracy
+#     5. Wypisanie classification report i macierzy pomyłek dla najlepszego modelu
 
 from __future__ import annotations
 

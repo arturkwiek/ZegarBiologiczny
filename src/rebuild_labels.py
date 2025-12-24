@@ -1,3 +1,21 @@
+# rebuild_labels.py
+# Run: python -m src.rebuild_labels [--data-dir path/to/dataset] [--out path/to/labels.csv] [--ext .jpg .png] [--strict-structure] [--check-hour-vs-folder]
+
+# Opis:
+#     Skrypt do odbudowy pliku labels.csv na podstawie aktualnej zawartości katalogu dataset.
+#     - Rekurencyjnie przechodzi po drzewie katalogów DATA_DIR
+#     - Szuka plików o zadanych rozszerzeniach (domyślnie .jpg, .jpeg, .png)
+#     - Odczytuje datę i czas z nazwy pliku w formacie YYYYMMDD_HHMMSS (jak w clock.py)
+#     - Wylicza godzinę na podstawie timestampu i zapisuje ją jako etykietę
+#     - (Opcjonalnie) weryfikuje spójność między nazwą pliku a folderem HH i raportuje rozjazdy
+
+# Zadania realizowane przez skrypt:
+#     1. Wczytanie konfiguracji ścieżek z src.settings (DATA_DIR, LABELS_CSV)
+#     2. Parsowanie argumentów CLI (nadpisanie katalogu danych, wyjściowego CSV, listy rozszerzeń, trybu strict)
+#     3. Przechodzenie po plikach w katalogu dataset i filtrowanie po rozszerzeniach
+#     4. Ekstrakcja daty/godziny z nazw plików i opcjonalne sprawdzenie zgodności z folderem HH
+#     5. Posortowanie rekordów i zapis nowego labels.csv (filepath, hour, datetime)
+
 from __future__ import annotations
 
 import re

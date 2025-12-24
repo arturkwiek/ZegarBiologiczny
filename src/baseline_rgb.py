@@ -1,4 +1,21 @@
-# src/baseline_rgb.py
+# src/baseline_rgb.py — Run: python -m src.baseline_rgb
+# baseline_rgb.py
+
+# Opis:
+#     Skrypt do trenowania bazowego modelu klasyfikacji godzin na podstawie średnich wartości RGB obrazów.
+#     - Wczytuje cechy z features_mean_rgb.csv
+#     - Dzieli dane na zbiór treningowy i testowy
+#     - Trenuje model LogisticRegression
+#     - Zapisuje wytrenowany model do pliku
+#     - Wyświetla metryki klasyfikacji oraz czas trenowania
+
+# Zadania realizowane przez skrypt:
+#     1. Wczytanie cech RGB z pliku CSV
+#     2. Podział na zbiór treningowy i testowy
+#     3. Trening modelu bazowego (LogisticRegression)
+#     4. Zapis modelu do pliku
+#     5. Wyświetlenie metryk i czasu trenowania
+
 from pathlib import Path
 
 import logging
@@ -12,7 +29,8 @@ from sklearn.metrics import (
 )
 from sklearn.model_selection import train_test_split
 
-FEATURES_PATH = Path("features_mean_rgb.csv")
+#FEATURES_PATH = Path("features_mean_rgb.csv")
+FEATURES_PATH = Path("features_mean_rgb_normalized.csv")
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s:%(message)s')
 

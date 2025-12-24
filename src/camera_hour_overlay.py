@@ -1,3 +1,20 @@
+# camera_hour_overlay.py
+# Run: python -m src.camera_hour_overlay --model models/baseline_rgb_model.pkl [--cam 0 --width 1280 --height 720 --smooth 0.6]
+
+# Opis:
+#     Skrypt do podglądu na żywo z kamerki USB z nałożoną przewidywaną godziną.
+#     - Wczytuje wytrenowany model klasyfikacji godzin (np. baseline_rgb_model.pkl)
+#     - Otwiera strumień z kamerki (OpenCV)
+#     - Dla każdej klatki liczy średnie wartości RGB (mean_rgb_features)
+#     - Wykonuje predykcję godziny i (opcjonalnie) prawdopodobieństw klas
+#     - Rysuje overlay z godziną, pewnością i FPS, wyświetlany w oknie OpenCV
+
+# Zadania realizowane przez skrypt:
+#     1. Wczytanie i sprawdzenie modelu (load_model, get_expected_n_features)
+#     2. Konfiguracja kamerki (indeks, rozdzielczość)
+#     3. Pętla pobierająca klatki i licząca cechy mean RGB
+#     4. Predykcja godziny i wygładzanie pewności (jeśli dostępne predict_proba)
+#     5. Rysowanie overlay (draw_overlay) i obsługa klawisza wyjścia (q / ESC)
 
 import argparse
 import pickle

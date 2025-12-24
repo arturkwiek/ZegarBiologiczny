@@ -1,4 +1,23 @@
-# src/baseline_advanced_logreg.py
+# src/baseline_advanced_logreg.py — Run: python -m src.baseline_advanced_logreg
+# baseline_advanced_logreg.py
+
+# Opis:
+#     Skrypt do trenowania bazowego modelu klasyfikacji godzin na podstawie rozszerzonych cech (features_advanced.csv).
+#     - Wczytuje cechy z features_advanced.csv
+#     - Wybiera wszystkie kolumny numeryczne poza "hour" jako cechy wejściowe
+#     - Dzieli dane na zbiór treningowy i testowy
+#     - Trenuje model LogisticRegression w pipeline ze skalowaniem (StandardScaler)
+#     - Zapisuje wytrenowany model do pliku baseline_advanced_logreg_model.pkl
+#     - Wyświetla metryki klasyfikacji (accuracy, classification report, confusion matrix)
+
+# Zadania realizowane przez skrypt:
+#     1. Wczytanie cech rozszerzonych z pliku CSV
+#     2. Przygotowanie macierzy cech i etykiet godzin
+#     3. Podział na zbiór treningowy i testowy
+#     4. Trening modelu LogisticRegression (z normalizacją cech)
+#     5. Zapis modelu do pliku w katalogu models/
+#     6. Wyświetlenie metryk jakości na zbiorze testowym
+
 from pathlib import Path
 
 import logging

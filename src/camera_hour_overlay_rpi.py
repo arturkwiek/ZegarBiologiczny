@@ -1,3 +1,21 @@
+# camera_hour_overlay_rpi.py
+# Run: python -m src.camera_hour_overlay_rpi --model models/baseline_rgb_model.pkl [--cam 0 --width 1280 --height 720 --smooth 0.6 --interval 2.0 --output ~/www/camera_hour.jpg]
+
+# Opis:
+#     Skrypt pomocniczy do Raspberry Pi, który okresowo zapisuje klatkę z kamerki USB
+#     z nałożoną przewidywaną godziną (overlay) do pliku JPG.
+#     - Wczytuje wytrenowany model klasyfikacji godzin (np. baseline_rgb_model.pkl)
+#     - Co zadany interwał (interval w sekundach) pobiera klatkę z kamerki
+#     - Liczy cechy mean RGB i wykonuje predykcję godziny
+#     - Rysuje overlay z godziną, pewnością i FPS na obrazie
+#     - Zapisuje wynikowy obraz do pliku (np. ~/www/camera_hour.jpg) do użycia przez serwer WWW
+
+# Zadania realizowane przez skrypt:
+#     1. Wczytanie modelu i sprawdzenie liczby oczekiwanych cech (load_model, get_expected_n_features)
+#     2. Konfiguracja źródła wideo i parametrów kamery (rozmiar, indeks kamery)
+#     3. Okresowe pobieranie klatek i wyliczanie cech mean RGB (mean_rgb_features)
+#     4. Predykcja godziny oraz (jeśli dostępne) prawdopodobieństwa klas
+#     5. Rysowanie overlay z godziną, pewnością i FPS oraz zapis obrazu do pliku wyjściowego
 
 import argparse
 import pickle

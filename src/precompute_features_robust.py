@@ -1,4 +1,19 @@
-# src/precompute_features_robust.py
+# src/precompute_features_robust.py — Run: python -m src.precompute_features_robust
+
+# Opis:
+#     Skrypt do ekstrakcji i zapisu cech robust z obrazów na podstawie pliku labels.csv.
+#     Dla każdego obrazu:
+#       - Wczytuje ścieżki i metadane z labels.csv
+#       - Wylicza cechy robust (funkcja extract_robust_image_features)
+#       - Zapisuje wynikowe cechy do pliku features_robust.csv
+#       - Wyświetla postęp przetwarzania (tqdm) oraz podsumowanie czasu
+
+# Zadania realizowane przez skrypt:
+#     1. Wczytanie etykiet i ścieżek do obrazów
+#     2. Ekstrakcja cech robust dla każdego obrazu
+#     3. Zapis cech do pliku CSV
+#     4. Podsumowanie czasu przetwarzania
+
 from __future__ import annotations
 
 from pathlib import Path

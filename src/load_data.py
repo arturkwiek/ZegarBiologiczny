@@ -1,3 +1,20 @@
+# load_data.py
+# Run: python -m src.load_data [--data-dir path/to/dataset] [--labels path/to/labels.csv]
+
+# Opis:
+#     Narzędziowy moduł do pracy z plikiem labels.csv i katalogiem z danymi.
+#     - Wczytuje labels.csv z domyślnej lokalizacji (settings.LABELS_CSV lub ./labels.csv)
+#     - Upewnia się, że kolumna filepath jest traktowana jako tekst
+#     - Sprawdza fizyczną obecność plików z datasetu względem katalogu danych
+#     - Pozwala wyznaczyć domyślne ścieżki na podstawie ustawień i zmiennych środowiskowych
+#     - Może być uruchomiony jako skrypt CLI do szybkiej kontroli spójności datasetu
+
+# Zadania realizowane przez skrypt/moduł:
+#     1. Wczytywanie labels.csv (funkcja load_labels)
+#     2. Walidacja istnienia plików obrazów (check_files_exist)
+#     3. Wyznaczanie domyślnych ścieżek do danych i etykiet (get_default_paths)
+#     4. Tryb CLI: wypisanie podstawowych statystyk i listy brakujących plików
+
 from __future__ import annotations
 
 from pathlib import Path

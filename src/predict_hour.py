@@ -1,4 +1,19 @@
-# src/predict_hour.py
+# src/predict_hour.py — Run: python -m src.predict_hour path/to/image.jpg
+
+# Opis:
+#     Skrypt do przewidywania godziny na podstawie pojedynczego obrazu.
+#     - Wczytuje wytrenowany model z katalogu models/ (best_advanced.joblib)
+#     - Ekstrahuje cechy RGB/HSV z obrazu (extract_rgb_hsv_stats z src.utils)
+#     - Przelicza cechy na wektor wejściowy i wykonuje predykcję godziny
+#     - (Opcjonalnie) wypisuje rozkład prawdopodobieństw po wszystkich godzinach
+#     - Wypisuje przewidywaną godzinę oraz top-k najbardziej prawdopodobnych godzin
+
+# Zadania realizowane przez skrypt:
+#     1. Wczytanie modelu klasyfikującego godzinę (load_model)
+#     2. Ekstrakcja cech RGB/HSV z pojedynczego obrazu (predict_for_image)
+#     3. Obsługa argumentów CLI (ścieżka do obrazu)
+#     4. Wypisanie przewidywanej godziny
+#     5. (Jeśli dostępne predict_proba) prezentacja top 5 godzin z najwyższym prawdopodobieństwem
 
 from __future__ import annotations
 

@@ -1,3 +1,16 @@
+# utils.py — Run: used as a library module (import src.utils), not meant to be executed directly.
+
+# Opis:
+#     Zbiór funkcji pomocniczych do ekstrakcji cech z obrazów (średnie RGB, statystyki HSV).
+#     - Wczytywanie obrazów i obliczanie cech
+#     - Konwersje kolorów (BGR -> RGB)
+#     - Funkcje wykorzystywane w precompute_mean_rgb.py, precompute_features_advanced.py
+
+# Zadania realizowane przez skrypt:
+#     1. Ekstrakcja średnich wartości RGB z obrazu
+#     2. Przetwarzanie obrazów na potrzeby ekstrakcji cech
+#     3. Pomocnicze funkcje do obsługi danych obrazowych
+
 from pathlib import Path
 import cv2
 import numpy as np

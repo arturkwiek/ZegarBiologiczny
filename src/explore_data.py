@@ -1,3 +1,20 @@
+# explore_data.py
+# Run: python -m src.explore_data
+
+# Opis:
+#     Prosty skrypt eksploracyjny do podglądu rozkładu danych w labels.csv.
+#     - Wczytuje labels.csv z domyślnej lokalizacji (settings.LABELS_CSV lub ./labels.csv)
+#     - Wypisuje podstawowe informacje o liczbie rekordów i przykładach wierszy
+#     - Pokazuje rozkład godzin (0–23) jako wykres słupkowy
+#     - Pokazuje liczbę próbek na dzień jako wykres słupkowy po dacie
+#     - Ułatwia szybkie sprawdzenie, czy dataset jest w miarę zbalansowany po godzinach/dniach
+
+# Zadania realizowane przez skrypt:
+#     1. Wczytanie labels.csv (z użyciem src.load_data.load_labels)
+#     2. Wyświetlenie podstawowych statystyk w terminalu
+#     3. Wizualizacja rozkładu godzin (plot_hour_distribution)
+#     4. Wizualizacja liczby próbek na dzień (plot_samples_per_day)
+
 import sys
 from pathlib import Path
 
