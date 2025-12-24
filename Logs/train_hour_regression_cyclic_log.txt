@@ -1,0 +1,44 @@
+[INFO] Start: regresja cykliczna godziny (sin/cos)
+[INFO] Wczytywanie danych z: features_robust.csv
+[INFO] Wczytano dataframe: shape=(471031, 59)
+[INFO] Liczba cech wejściowych: 56
+[INFO] Przykładowe cechy: ['r_mean', 'g_mean', 'b_mean', 'r_std', 'g_std', 'b_std', 's_mean', 'v_mean', 's_std', 'v_std'] ...
+[INFO] Budowa macierzy X (float32) i wektora y_hour
+[INFO] X shape=(471031, 56), y_hour shape=(471031,)
+[INFO] Transformacja celu: hour -> (sin, cos)
+[INFO] y_sc shape=(471031, 2)
+[INFO] Podział train/test (80/20) ze stratify po godzinie
+[INFO] Train: X=(376824, 56), Test: X=(94207, 56)
+[INFO] --------------------------------------------------------------------------------
+[INFO] Trening modelu: ridge
+[INFO] Koniec fit: 0.52s
+[INFO] Predykcja na zbiorze testowym
+[INFO] Wyniki [ridge]
+  Cyclic MAE (h): 2.022
+  Naive  MAE (h): 3.487
+  P90 cyclic err (h): 4.452
+  P95 cyclic err (h): 5.659
+  Fit time: 0.52s
+[INFO] --------------------------------------------------------------------------------
+[INFO] Trening modelu: hgb
+[INFO] Koniec fit: 5.34s
+[INFO] Predykcja na zbiorze testowym
+[INFO] Wyniki [hgb]
+  Cyclic MAE (h): 0.656
+  Naive  MAE (h): 1.469
+  P90 cyclic err (h): 1.598
+  P95 cyclic err (h): 2.222
+  Fit time: 5.34s
+[INFO] --------------------------------------------------------------------------------
+[INFO] Trening modelu: rf
+[INFO] Koniec fit: 2879.80s
+[INFO] Predykcja na zbiorze testowym
+[INFO] Wyniki [rf]
+  Cyclic MAE (h): 0.360
+  Naive  MAE (h): 0.877
+  P90 cyclic err (h): 1.173
+  P95 cyclic err (h): 1.782
+  Fit time: 2879.80s
+[INFO] ================================================================================
+[INFO] Najlepszy model wg Cyclic MAE: rf (Cyclic MAE=0.360h)
+[INFO] Całkowity czas wykonania: 2894.35s

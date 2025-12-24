@@ -1,0 +1,100 @@
+[INFO] Device: cuda
+[INFO] Wczytywanie danych z: features_robust.csv
+[INFO] Shape: (471031, 59)
+[INFO] Liczba cech: 56
+[INFO] Split: train/val/test z zachowaniem proporcji godzin
+[INFO] Train: (376828, 56), Val: (47099, 56), Test: (47104, 56)
+[INFO] Standaryzacja cech (mean=0, std=1) na bazie TRAIN
+[INFO] Model: MLP(in_dim=56)
+[INFO] Start treningu
+[INFO] Epoch 001/50 | train_loss=0.14865 | val_cmae=1.463h | p90=3.333h | p95=5.146h | lr=1.00e-03 | time=9.0s
+[INFO] Zapisano best model -> models/best_mlp_cyclic.pt (val_cmae=1.463h)
+[INFO] Epoch 002/50 | train_loss=0.10640 | val_cmae=1.291h | p90=3.027h | p95=4.383h | lr=1.00e-03 | time=7.6s
+[INFO] Zapisano best model -> models/best_mlp_cyclic.pt (val_cmae=1.291h)
+[INFO] Epoch 003/50 | train_loss=0.09019 | val_cmae=1.116h | p90=2.658h | p95=3.716h | lr=1.00e-03 | time=8.0s
+[INFO] Zapisano best model -> models/best_mlp_cyclic.pt (val_cmae=1.116h)
+[INFO] Epoch 004/50 | train_loss=0.07954 | val_cmae=1.038h | p90=2.522h | p95=3.577h | lr=1.00e-03 | time=7.8s
+[INFO] Zapisano best model -> models/best_mlp_cyclic.pt (val_cmae=1.038h)
+[INFO] Epoch 005/50 | train_loss=0.07097 | val_cmae=0.940h | p90=2.235h | p95=3.169h | lr=1.00e-03 | time=8.6s
+[INFO] Zapisano best model -> models/best_mlp_cyclic.pt (val_cmae=0.940h)
+[INFO] Epoch 006/50 | train_loss=0.06537 | val_cmae=0.901h | p90=2.233h | p95=3.114h | lr=1.00e-03 | time=8.4s
+[INFO] Zapisano best model -> models/best_mlp_cyclic.pt (val_cmae=0.901h)
+[INFO] Epoch 007/50 | train_loss=0.05883 | val_cmae=0.843h | p90=2.076h | p95=2.993h | lr=1.00e-03 | time=8.7s
+[INFO] Zapisano best model -> models/best_mlp_cyclic.pt (val_cmae=0.843h)
+[INFO] Epoch 008/50 | train_loss=0.05556 | val_cmae=0.807h | p90=1.988h | p95=2.790h | lr=1.00e-03 | time=9.0s
+[INFO] Zapisano best model -> models/best_mlp_cyclic.pt (val_cmae=0.807h)
+[INFO] Epoch 009/50 | train_loss=0.05172 | val_cmae=0.767h | p90=1.864h | p95=2.697h | lr=1.00e-03 | time=9.6s
+[INFO] Zapisano best model -> models/best_mlp_cyclic.pt (val_cmae=0.767h)
+[INFO] Epoch 010/50 | train_loss=0.05028 | val_cmae=0.771h | p90=1.978h | p95=2.738h | lr=1.00e-03 | time=7.9s
+[INFO] Epoch 011/50 | train_loss=0.05088 | val_cmae=1.407h | p90=3.309h | p95=4.750h | lr=1.00e-03 | time=9.0s
+[INFO] Epoch 012/50 | train_loss=0.05965 | val_cmae=0.796h | p90=1.865h | p95=2.757h | lr=5.00e-04 | time=10.0s
+[INFO] Epoch 013/50 | train_loss=0.05002 | val_cmae=0.724h | p90=1.784h | p95=2.626h | lr=5.00e-04 | time=8.4s
+[INFO] Zapisano best model -> models/best_mlp_cyclic.pt (val_cmae=0.724h)
+[INFO] Epoch 014/50 | train_loss=0.04667 | val_cmae=0.707h | p90=1.808h | p95=2.529h | lr=5.00e-04 | time=8.2s
+[INFO] Zapisano best model -> models/best_mlp_cyclic.pt (val_cmae=0.707h)
+[INFO] Epoch 015/50 | train_loss=0.04544 | val_cmae=0.707h | p90=1.776h | p95=2.534h | lr=5.00e-04 | time=7.6s
+[INFO] Zapisano best model -> models/best_mlp_cyclic.pt (val_cmae=0.707h)
+[INFO] Epoch 016/50 | train_loss=0.04481 | val_cmae=0.685h | p90=1.701h | p95=2.454h | lr=5.00e-04 | time=8.8s
+[INFO] Zapisano best model -> models/best_mlp_cyclic.pt (val_cmae=0.685h)
+[INFO] Epoch 017/50 | train_loss=0.04420 | val_cmae=0.691h | p90=1.731h | p95=2.547h | lr=5.00e-04 | time=7.9s
+[INFO] Epoch 018/50 | train_loss=0.04364 | val_cmae=0.674h | p90=1.719h | p95=2.432h | lr=5.00e-04 | time=7.7s
+[INFO] Zapisano best model -> models/best_mlp_cyclic.pt (val_cmae=0.674h)
+[INFO] Epoch 019/50 | train_loss=0.04310 | val_cmae=0.667h | p90=1.700h | p95=2.426h | lr=5.00e-04 | time=7.9s
+[INFO] Zapisano best model -> models/best_mlp_cyclic.pt (val_cmae=0.667h)
+[INFO] Epoch 020/50 | train_loss=0.04259 | val_cmae=0.655h | p90=1.682h | p95=2.406h | lr=5.00e-04 | time=8.7s
+[INFO] Zapisano best model -> models/best_mlp_cyclic.pt (val_cmae=0.655h)
+[INFO] Epoch 021/50 | train_loss=0.04228 | val_cmae=0.655h | p90=1.675h | p95=2.402h | lr=5.00e-04 | time=7.8s
+[INFO] Zapisano best model -> models/best_mlp_cyclic.pt (val_cmae=0.655h)
+[INFO] Epoch 022/50 | train_loss=0.04169 | val_cmae=0.651h | p90=1.646h | p95=2.417h | lr=5.00e-04 | time=8.2s
+[INFO] Zapisano best model -> models/best_mlp_cyclic.pt (val_cmae=0.651h)
+[INFO] Epoch 023/50 | train_loss=0.04125 | val_cmae=0.641h | p90=1.651h | p95=2.384h | lr=5.00e-04 | time=7.7s
+[INFO] Zapisano best model -> models/best_mlp_cyclic.pt (val_cmae=0.641h)
+[INFO] Epoch 024/50 | train_loss=0.04093 | val_cmae=0.648h | p90=1.705h | p95=2.388h | lr=5.00e-04 | time=8.3s
+[INFO] Epoch 025/50 | train_loss=0.04043 | val_cmae=0.640h | p90=1.664h | p95=2.387h | lr=5.00e-04 | time=8.0s
+[INFO] Zapisano best model -> models/best_mlp_cyclic.pt (val_cmae=0.640h)
+[INFO] Epoch 026/50 | train_loss=0.04049 | val_cmae=0.638h | p90=1.624h | p95=2.386h | lr=5.00e-04 | time=8.1s
+[INFO] Zapisano best model -> models/best_mlp_cyclic.pt (val_cmae=0.638h)
+[INFO] Epoch 027/50 | train_loss=0.03981 | val_cmae=0.636h | p90=1.646h | p95=2.443h | lr=5.00e-04 | time=8.1s
+[INFO] Zapisano best model -> models/best_mlp_cyclic.pt (val_cmae=0.636h)
+[INFO] Epoch 028/50 | train_loss=0.03967 | val_cmae=0.630h | p90=1.632h | p95=2.360h | lr=5.00e-04 | time=8.7s
+[INFO] Zapisano best model -> models/best_mlp_cyclic.pt (val_cmae=0.630h)
+[INFO] Epoch 029/50 | train_loss=0.03901 | val_cmae=0.628h | p90=1.656h | p95=2.384h | lr=5.00e-04 | time=7.6s
+[INFO] Zapisano best model -> models/best_mlp_cyclic.pt (val_cmae=0.628h)
+[INFO] Epoch 030/50 | train_loss=0.03907 | val_cmae=0.631h | p90=1.621h | p95=2.377h | lr=5.00e-04 | time=8.1s
+[INFO] Epoch 031/50 | train_loss=0.03857 | val_cmae=0.622h | p90=1.627h | p95=2.308h | lr=5.00e-04 | time=8.2s
+[INFO] Zapisano best model -> models/best_mlp_cyclic.pt (val_cmae=0.622h)
+[INFO] Epoch 032/50 | train_loss=0.03860 | val_cmae=0.617h | p90=1.609h | p95=2.333h | lr=5.00e-04 | time=9.0s
+[INFO] Zapisano best model -> models/best_mlp_cyclic.pt (val_cmae=0.617h)
+[INFO] Epoch 033/50 | train_loss=0.04616 | val_cmae=0.642h | p90=1.661h | p95=2.380h | lr=5.00e-04 | time=8.2s
+[INFO] Epoch 034/50 | train_loss=0.03991 | val_cmae=0.624h | p90=1.639h | p95=2.374h | lr=5.00e-04 | time=8.1s
+[INFO] Epoch 035/50 | train_loss=0.03902 | val_cmae=0.630h | p90=1.654h | p95=2.450h | lr=2.50e-04 | time=7.6s
+[INFO] Epoch 036/50 | train_loss=0.03770 | val_cmae=0.600h | p90=1.566h | p95=2.289h | lr=2.50e-04 | time=112.2s
+[INFO] Zapisano best model -> models/best_mlp_cyclic.pt (val_cmae=0.600h)
+[INFO] Epoch 037/50 | train_loss=0.03734 | val_cmae=0.598h | p90=1.577h | p95=2.301h | lr=2.50e-04 | time=8.8s
+[INFO] Zapisano best model -> models/best_mlp_cyclic.pt (val_cmae=0.598h)
+[INFO] Epoch 038/50 | train_loss=0.03700 | val_cmae=0.610h | p90=1.586h | p95=2.317h | lr=2.50e-04 | time=7.8s
+[INFO] Epoch 039/50 | train_loss=0.03687 | val_cmae=0.595h | p90=1.555h | p95=2.281h | lr=2.50e-04 | time=8.6s
+[INFO] Zapisano best model -> models/best_mlp_cyclic.pt (val_cmae=0.595h)
+[INFO] Epoch 040/50 | train_loss=0.03654 | val_cmae=0.598h | p90=1.555h | p95=2.283h | lr=2.50e-04 | time=8.8s
+[INFO] Epoch 041/50 | train_loss=0.03649 | val_cmae=0.591h | p90=1.548h | p95=2.262h | lr=2.50e-04 | time=8.4s
+[INFO] Zapisano best model -> models/best_mlp_cyclic.pt (val_cmae=0.591h)
+[INFO] Epoch 042/50 | train_loss=0.03672 | val_cmae=0.606h | p90=1.616h | p95=2.325h | lr=2.50e-04 | time=6.6s
+[INFO] Epoch 043/50 | train_loss=0.03624 | val_cmae=0.590h | p90=1.581h | p95=2.282h | lr=2.50e-04 | time=5.2s
+[INFO] Zapisano best model -> models/best_mlp_cyclic.pt (val_cmae=0.590h)
+[INFO] Epoch 044/50 | train_loss=0.03625 | val_cmae=0.586h | p90=1.528h | p95=2.258h | lr=2.50e-04 | time=4.9s
+[INFO] Zapisano best model -> models/best_mlp_cyclic.pt (val_cmae=0.586h)
+[INFO] Epoch 045/50 | train_loss=0.03596 | val_cmae=0.592h | p90=1.545h | p95=2.315h | lr=2.50e-04 | time=4.7s
+[INFO] Epoch 046/50 | train_loss=0.03597 | val_cmae=0.593h | p90=1.566h | p95=2.278h | lr=2.50e-04 | time=4.5s
+[INFO] Epoch 047/50 | train_loss=0.03572 | val_cmae=0.585h | p90=1.545h | p95=2.267h | lr=2.50e-04 | time=4.9s
+[INFO] Zapisano best model -> models/best_mlp_cyclic.pt (val_cmae=0.585h)
+[INFO] Epoch 048/50 | train_loss=0.03570 | val_cmae=0.586h | p90=1.537h | p95=2.255h | lr=2.50e-04 | time=4.9s
+[INFO] Epoch 049/50 | train_loss=0.03601 | val_cmae=0.586h | p90=1.549h | p95=2.259h | lr=2.50e-04 | time=4.7s
+[INFO] Epoch 050/50 | train_loss=0.03556 | val_cmae=0.581h | p90=1.526h | p95=2.267h | lr=2.50e-04 | time=5.0s
+[INFO] Zapisano best model -> models/best_mlp_cyclic.pt (val_cmae=0.581h)
+[INFO] Ładowanie najlepszego modelu z: models/best_mlp_cyclic.pt
+[INFO] ================================================================================
+[INFO] BEST epoch: 50, best_val_cmae=0.581h
+[INFO] TEST  Cyclic MAE: 0.589h  (~35.3 min)
+[INFO] TEST  P90:        1.561h  (~93.6 min)
+[INFO] TEST  P95:        2.289h  (~137.4 min)
+[INFO] Całkowity czas:   512.28s

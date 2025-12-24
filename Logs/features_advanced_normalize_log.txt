@@ -1,0 +1,6 @@
+[INFO] Wczytywanie danych z: features_advanced.csv
+[INFO] Shape: (471031, 11)
+[INFO] Liczba cech do normalizacji: 8
+[INFO] Liczenie mean/std na TRAIN: (376824, 8)
+[INFO] Zapisano znormalizowany CSV: features_advanced_normalized.csv
+[INFO] Zapisano scaler: features_advanced_scaler.npz
