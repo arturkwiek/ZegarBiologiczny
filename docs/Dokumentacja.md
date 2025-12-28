@@ -23,7 +23,7 @@ oraz artefaktów (pliki CSV z cechami, modele, logi).
 
 ---
 
-## 1. Część akwizycyjna
+## 1. Moduł akwizycji danych
 
 Cel tej części stanowi cykliczne zapisywanie obrazów z kamery oraz budowa surowego zbioru danych.
 
@@ -37,7 +37,7 @@ Rezultatem części akwizycyjnej są **obrazy** oraz **etykiety czasu**, które 
 
 ---
 
-## 2. Część kontrolna i weryfikacyjna
+## 2. Moduł kontroli i weryfikacji danych
 
 Celem tej części jest weryfikacja, czy zestaw danych jest spójny, kompletny i w sposób sensowny rozłożony w czasie.
 
@@ -55,7 +55,7 @@ Część kontrolna i weryfikacyjna umożliwia wczesne wykrycie brakujących plik
 
 ---
 
-## 3. Część korekcyjna
+## 3. Moduł korekcji etykiet
 
 Zadaniem tej części jest porządkowanie oraz ewentualna rekonstrukcja etykiet czasowych.
 
@@ -69,7 +69,7 @@ Produktem części korekcyjnej jest **spójny plik etykiet**, na którym można 
 
 ---
 
-## 4. Część przygotowująca dane (feature engineering + normalizacja)
+## 4. Moduł przygotowania danych (feature engineering i normalizacja)
 
 Celem tej części jest przekształcenie surowych obrazów do postaci tabelarycznej (cechy numeryczne),
 odpowiedniej dla modeli klasycznych oraz sieci neuronowych.
@@ -95,7 +95,7 @@ a następnie stosowane do walidacji i testu, co ogranicza ryzyko przecieku infor
 
 ---
 
-## 5. Część trenująca (modele ML)
+## 5. Moduł treningu modeli ML
 
 Celem tej części jest wytrenowanie zestawu modeli przewidujących godzinę na podstawie cech wyznaczonych z obrazów.
 
@@ -128,7 +128,7 @@ natomiast model MLP jako plik `.pt` (stan sieci oraz parametry normalizacji).
 
 ---
 
-## 6. Część implementacyjna (predykcja on‑line)
+## 6. Moduł implementacyjny (predykcja on‑line)
 
 Celem tej części jest wykorzystanie wytrenowanych modeli do przewidywania godziny na nowych obrazach
 oraz prezentowanie tej informacji użytkownikowi w sposób czytelny i ciągły.
