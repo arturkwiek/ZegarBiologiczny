@@ -1,302 +1,187 @@
-# **Opis Pierwszego etapu prac** 2025.12.07
-# 🟦 **Podsumowanie dotychczasowej pracy nad projektem „CameraTime”**
+<!-- Alternatywny README / dokument ogólny projektu -->
 
-Projekt ma jeden główny cel:
-**wytrenować model uczenia maszynowego, który przewiduje godzinę doby na podstawie obrazu z kamery USB.**
+# Dokumentacja projektu „Zegar biologiczny”
 
-Zrealizowaliśmy już kilka kluczowych etapów, które tworzą solidny fundament do dalszych, bardziej zaawansowanych eksperymentów.
+Projekt „Zegar biologiczny” ma na celu zbudowanie systemu, który na podstawie pojedynczego obrazu sceny zewnętrznej
+potrafi oszacować porę doby (godzinę) w sposób zgodny z cykliczną naturą czasu. Rozwiązanie łączy klasyczne
+przetwarzanie obrazu z metodami uczenia maszynowego, obejmując pełen proces: od akwizycji danych, przez
+przygotowanie cech i trening modeli, aż po ich uruchomienie w środowisku rzeczywistym (kamera + overlay).
 
----
+Aby ten cel zrealizować, projekt został podzielony na kilka spójnych modułów, tworzących kompletny łańcuch
+przetwarzania (pipeline):
 
-# 🟩 **1. Zbieranie i organizacja danych**
+- **część akwizycyjna** – pozyskiwanie obrazów z kamery i ich trwały zapis na dysku,
+- **część kontrolna i weryfikacyjna** – sprawdzanie spójności pliku `labels.csv` oraz rozkładu danych w czasie,
+- **część korekcyjna** – porządkowanie i rekonstrukcja etykiet tam, gdzie surowe dane są niekompletne lub niespójne,
+- **część przygotowująca dane** – wyznaczanie cech numerycznych z obrazów oraz ich normalizacja,
+- **część trenująca** – uczenie i porównywanie modeli klasyfikacji i regresji czasu, w tym modeli cyklicznych,
+- **część implementacyjna** – wykorzystanie wytrenowanych modeli w trybie on‑line (overlay godziny na obrazie,
+  praca na żywym strumieniu z kamery).
 
-System uruchomiony na Raspberry Pi automatycznie zapisuje jedno zdjęcie **co sekundę**, tworząc niezwykle bogaty zbiór obrazów.
-Dane są organizowane w przejrzystej strukturze katalogów:
-
-```
-dataset/YYYY/MM/DD/HH/YYYYMMDD_HHMMSS.jpg
-```
-
-Do tego generowany jest plik **labels.csv**, zawierający:
-
-* pełną ścieżkę do obrazu,
-* godzinę (etykieta: 0–23),
-* dokładny timestamp.
-
-Obecnie zgromadziliśmy:
-
-### **~550 000 zdjęć**
-
-– to już dane na poziomie prawdziwych projektów badawczych.
-
-Rozkład godzin jest praktycznie równy — co oznacza, że mamy **wiele pełnych dób**, idealnych do analizy cyklu światła i modelowania czasu.
+W kolejnych rozdziałach przedstawiono zwięzły opis każdej z części wraz z odwołaniem do kluczowych skryptów
+oraz artefaktów (pliki CSV z cechami, modele, logi).
 
 ---
 
-# 🟩 **2. Walidacja struktury datasetu (`load_data`)**
+## 1. Część akwizycyjna
 
-Napisany został moduł, który:
+Cel tej części stanowi cykliczne zapisywanie obrazów z kamery oraz budowa surowego zbioru danych.
 
-* wczytuje `labels.csv`,
-* wykrywa błędne wpisy,
-* sprawdza istnienie każdego zdjęcia na dysku.
+Główne elementy:
 
-Wynik:
+- `MLDailyHourClock.py` – aplikacja wysokiego poziomu sterująca eksperymentem (akwizycja w dłuższym okresie, integracja z Raspberry Pi / komputerem PC),
+- struktura folderu `dataset/2025/...` – surowe obrazy oraz plik `dataset/2025/labels.csv`
+	zawierający m.in. kolumny `filepath`, `datetime`, `hour`.
 
-* ~550k prawidłowych ścieżek,
-* tylko **2 uszkodzone wpisy (`nan`)**,
-* pliki na dysku są spójne i kompletne.
-
-Dataset jest zatem **stabilny i wiarygodny**.
+Rezultatem części akwizycyjnej są **obrazy** oraz **etykiety czasu**, które stanowią wejście dla kolejnych etapów pipeline'u ML.
 
 ---
 
-# 🟩 **3. Eksploracja danych (`explore_data`)**
+## 2. Część kontrolna i weryfikacyjna
 
-Wygenerowaliśmy statystyki opisujące zbiór:
+Celem tej części jest weryfikacja, czy zestaw danych jest spójny, kompletny i w sposób sensowny rozłożony w czasie.
 
-* liczność próbek w poszczególnych godzinach,
-* przykładowe rekordy,
-* pierwsze wizualizacje (histogram rozkładu godzin).
+Główne skrypty:
 
-Rozkład godzin wygląda jak idealny zegar biologiczny środowiska — **zdecydowanie potwierdza sens modelowania pory dnia na podstawie obrazu**.
+- `src/load_data.py`
+	- funkcja `load_labels()` wczytuje `labels.csv` (z `src/settings.py` lub z pliku lokalnego), zapewniając poprawny typ kolumny `filepath`,
+	- funkcja `check_files_exist()` sprawdza, czy wszystkie ścieżki z `labels.csv` istnieją względem katalogu `DATA_DIR`,
+	- moduł może zostać uruchomiony jako narzędzie CLI do szybkiej walidacji zbioru danych.
+- `src/explore_data.py`
+	- podstawowa eksploracja: rozkład godzin (`hour`), liczba próbek na dzień (`datetime → date`),
+	- generuje wykresy (matplotlib/seaborn) oraz wypisuje kluczowe statystyki opisowe.
+
+Część kontrolna i weryfikacyjna umożliwia wczesne wykrycie brakujących plików, luk w rozkładzie godzin lub nierównomiernego próbkowania w czasie.
 
 ---
 
-# 🟩 **4. Zbudowanie modelu bazowego (`baseline_rgb`)**
+## 3. Część korekcyjna
 
-Pierwszy, najprostszy model opiera się wyłącznie na **średnich wartościach kanałów RGB obrazu**:
+Zadaniem tej części jest porządkowanie oraz ewentualna rekonstrukcja etykiet czasowych.
 
-* dla każdego obrazu liczymy 3 liczby: `mean_r, mean_g, mean_b`,
-* uczymy klasyfikator Logistic Regression na 24 klasy (godziny 0–23).
+Główne skrypty:
 
-To najlżejsza możliwa reprezentacja obrazu — idealna na start.
+- `src/rebuild_labels.py` – generuje i koryguje `labels.csv` na podstawie struktury katalogów i nazw plików,
+	co zapewnia spójność etykiet z rzeczywistym zbiorem obrazów,
+- `src/utils.py`, `src/utils_robust.py` – zbiór funkcji pomocniczych (m.in. wczytywanie obrazu, wyliczanie statystyk kanałów, obsługa błędów I/O).
 
-## 1 Load data
+Produktem części korekcyjnej jest **spójny plik etykiet**, na którym można bezpiecznie opierać dalsze etapy przetwarzania i budowy cech.
 
-```
-(.venv) vision@VisionRPi:~/workspace/ZegarBiologicznyML$ python -m src.load_data
-Pierwsze wiersze labels.csv:
-                                    filepath  hour                    datetime
-0  dataset/2025/11/30/12/20251130_124132.jpg    12  2025-11-30T12:41:32.502789
-1  dataset/2025/11/30/12/20251130_124133.jpg    12  2025-11-30T12:41:33.508668
-2  dataset/2025/11/30/12/20251130_124134.jpg    12  2025-11-30T12:41:34.513759
-3  dataset/2025/11/30/12/20251130_124135.jpg    12  2025-11-30T12:41:35.520540
-4  dataset/2025/11/30/12/20251130_124136.jpg    12  2025-11-30T12:41:36.525037
-
-Liczba rekordów: 550077
-Sprawdzanie plików: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 550077/550077 [00:10<00:00, 54565.47it/s]
-
-Brakujące pliki: 2
-['nan', 'nan']
-```
 ---
 
-## 2 Explore data
+## 4. Część przygotowująca dane (feature engineering + normalizacja)
 
-```
-(.venv) vision@VisionRPi:~/workspace/ZegarBiologicznyML$ python -m src.explore_data
-Liczba rekordów: 550128
-Przykładowe rekordy:
-                                    filepath  hour                    datetime
-0  dataset/2025/11/30/12/20251130_124132.jpg    12  2025-11-30T12:41:32.502789
-1  dataset/2025/11/30/12/20251130_124133.jpg    12  2025-11-30T12:41:33.508668
-2  dataset/2025/11/30/12/20251130_124134.jpg    12  2025-11-30T12:41:34.513759
-3  dataset/2025/11/30/12/20251130_124135.jpg    12  2025-11-30T12:41:35.520540
-4  dataset/2025/11/30/12/20251130_124136.jpg    12  2025-11-30T12:41:36.525037
+Celem tej części jest przekształcenie surowych obrazów do postaci tabelarycznej (cechy numeryczne),
+odpowiedniej dla modeli klasycznych oraz sieci neuronowych.
 
-Rozkład godzin:
-hour
-0     21486
-1     21484
-2     21484
-3     21484
-4     21487
-5     21484
-6     21481
-7     21469
-8     21465
-9     20551
-10    20883
-11    21460
-12    22561
-13    24978
-14    24415
-15    25045
-16    25065
-17    25063
-18    25062
-19    25063
-20    25064
-21    25062
-22    25047
-23    21485
-Name: count, dtype: int64
-```
+Główne skrypty:
+
+- `src/precompute_mean_rgb.py`
+	- dla każdego obrazu liczy średnie wartości kanałów R/G/B,
+	- zapisuje wynik do `features_mean_rgb.csv`.
+- `src/precompute_features_advanced.py`
+	- wylicza rozszerzony zestaw cech: średnie i odchylenia RGB oraz statystyki HSV
+		(funkcja `extract_rgb_hsv_stats()`),
+	- zapisuje do `features_advanced.csv`.
+- `src/precompute_features_robust.py`
+	- generuje cechy „robust” (bardziej odporne na warunki oświetleniowe, chmury itd.),
+	- zapisuje do `features_robust.csv`.
+- `src/normalize_data.py`
+	- normalizuje wybrane pliki cech (`features_*.csv`) z użyciem odpowiedniego skalera (Standard/Robust itp.),
+	- zapisuje zarówno znormalizowane dane (`*_normalized.csv`), jak i parametry skalera (`*.npz`).
+
+We wszystkich przypadkach statystyki normalizacji wyznaczane są **wyłącznie na zbiorze treningowym**,
+a następnie stosowane do walidacji i testu, co ogranicza ryzyko przecieku informacji.
+
 ---
 
-## 3 Baseline RGB
+## 5. Część trenująca (modele ML)
 
-```
-(.venv) vision@VisionRPi:~/workspace/ZegarBiologicznyML$(.venv) vision@VisionRPi:~/workspace/ZegarBiologicznyML$ python -m src.baseline_rgb
-Liczba rekordów w labels.csv: 550165
-Ekstrakcja cech (średnie RGB)...
-  3%|██████▍                                                                                                                                                                                                       | 17144/550165 [03:30<1:48:30, 81.87it/s]
-  3%|██████▍                                                                                                                                                                                                       | 17162/550165 [03:30<1:50:10, 80.64it/s]
-100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 550165/550165 [2:04:33<00:00, 73.61it/s]
-Gotowe X shape: (550118, 3) y shape: (550118,)
-/home/vision/workspace/ZegarBiologicznyML/.venv/lib/python3.13/site-packages/sklearn/linear_model/_logistic.py:1272: FutureWarning: 'multi_class' was deprecated in version 1.5 and will be removed in 1.8. From then on, it will always use 'multinomial'.
-Leave it to its default value to avoid this warning.
-  warnings.warn(
-/home/vision/workspace/ZegarBiologicznyML/.venv/lib/python3.13/site-packages/sklearn/linear_model/_logistic.py:473: ConvergenceWarning: lbfgs failed to converge after 2000 iteration(s) (status=1):
-STOP: TOTAL NO. OF ITERATIONS REACHED LIMIT
+Celem tej części jest wytrenowanie zestawu modeli przewidujących godzinę na podstawie cech wyznaczonych z obrazów.
 
-Increase the number of iterations to improve the convergence (max_iter=2000).
-You might also want to scale the data as shown in:
-    https://scikit-learn.org/stable/modules/preprocessing.html
-Please also refer to the documentation for alternative solver options:
-    https://scikit-learn.org/stable/modules/linear_model.html#logistic-regression
-  n_iter_i = _check_optimize_result(
+Modele bazowe oparte na prostych cechach RGB:
 
-=== Wyniki modelu bazowego (średnie RGB) ===
-Accuracy: 0.24701277297074578
+- `src/baseline_rgb.py` – klasyfikacja godzin na podstawie `features_mean_rgb.csv`.
+- `src/baseline_advanced.py` – modele na ręcznie wybranych cechach z `features_advanced.csv`.
+- `src/baseline_advanced_logreg.py` – LogisticRegression na pełnym zestawie cech advanced.
 
-Classification report:
-              precision    recall  f1-score   support
+Modele operujące na cechach robust:
 
-           0       0.14      0.13      0.14      6446
-           1       0.24      0.29      0.26      6445
-           2       0.15      0.04      0.06      6445
-           3       0.00      0.00      0.00      6445
-           4       0.14      0.41      0.21      6446
-           5       0.17      0.32      0.22      6445
-           6       0.34      0.22      0.27      6444
-           7       0.55      0.51      0.53      6441
-           8       0.21      0.34      0.26      6439
-           9       0.30      0.01      0.02      6159
-          10       0.10      0.05      0.07      6265
-          11       0.18      0.30      0.23      6438
-          12       0.20      0.14      0.17      6768
-          13       0.25      0.30      0.28      7493
-          14       0.42      0.50      0.45      7317
-          15       0.70      0.64      0.67      7514
-          16       0.31      0.54      0.39      7520
-          17       0.19      0.18      0.18      7519
-          18       0.02      0.00      0.01      7519
-          19       0.31      0.21      0.25      7519
-          20       0.19      0.46      0.27      7519
-          21       0.04      0.00      0.01      7519
-          22       0.31      0.24      0.27      7518
-          23       0.02      0.01      0.01      6453
+- `src/train_robust_time.py`
+	- klasyfikacja godzin z binningiem (przedziały czasowe),
+	- LogisticRegression / RandomForest / GradientBoosting, metryki top‑k i circular MAE.
 
-    accuracy                           0.25    165036
-   macro avg       0.23      0.24      0.22    165036
-weighted avg       0.23      0.25      0.22    165036
+Modele regresji cyklicznej:
 
-Macierz pomyłek:
-[[ 864 1178  280    0 2821  193    0    0    0    0    0    0    0    0
-     0    0    0    0   36    0 1074    0    0    0]
- [ 716 1842   62    1 2108  668    0    0    0    0    0    0    0    0
-     0    0    5    0   19    0 1024    0    0    0]
- [ 754  891  249    0 2636 1253    0    0    0    0    0    0    0    0
-     0    0    0    0  108    0  554    0    0    0]
- [ 540  913  432    0 2291 1976    0    0    0    0    0    0    0    0
-     0    0    0    0   53    0  240    0    0    0]
- [ 567  599  406    0 2614 2237    0    0    0    0    0    0    0    0
-     0    0    0    0    4    0   19    0    0    0]
- [ 416  976  206    2 2101 2059    0    0    0    0    0    0    0    0
-     0    0  320    6   56   16  246    0    0   41]
- [  10  282    0    1 1091 1250 1390    0    0    0    0    0    0    0
-    64  503  254    9   16   30  839    0   89  616]
- [   0    0    0    0    0    0    5 3301  462    5   35   20    0  261
-  1041 1311    0    0    0    0    0    0    0    0]
- [   0    0    0    0    0    0    0  749 2162   63  683  827  915  795
-   245    0    0    0    0    0    0    0    0    0]
- [   0    0    0    0    0    0    0  115 2288   57  812 1285  361 1232
-     9    0    0    0    0    0    0    0    0    0]
- [   0    0    0    0    0    0    0    0 1666    8  314 2539  455  927
-   356    0    0    0    0    0    0    0    0    0]
- [   0    0    0    0    0    0    0    0  848    3  941 1925  917  750
-  1046    8    0    0    0    0    0    0    0    0]
- [   0    0    0    0    0    0    0    2 1055    2  180 2227  972 1145
-   860    0  203   58   10   50    0    1    3    0]
- [   0    0    0    0    0    0    2   74 1084   44  183 1447  815 2269
-  1080    2   98   17    1   88    0   20  269    0]
- [   0    0    0    0    0    0   51 1130  491   10   67  152  327  651
-  3633  211    0    0    0    2    0    0  592    0]
- [   0    0    0    0    0    0  560  647    5    0    0   85  154  594
-   393 4791  163    0    0    1    0    0  121    0]
- [   0    0    0    0  142    5  319    0    0    0    0    0    0    0
-     0   32 4026  946   78  193  903   66   98  712]
- [   0    0    0    0   57  166  128    0    0    0    0    0    0    0
-     0    0 2320 1325  112 1466 1433   64   27  421]
- [ 378   74    4    0   54  178   16    0    0    0    0    0    0    0
-     0    0 1689 1218   34  440 2580  586  105  163]
- [ 471  237   28    0   13  261  445    0    0    0    0    0    0    0
-     0    0  406 1089  341 1555 1698    0  886   89]
- [   0    0    0    0    0  236  385    0    0    0    0    0    0    0
-     0    0  399 1074  320  879 3494   74   63  595]
- [  15    0    1    0   30    8  173    0    0    0    0    0    0    0
-     0    0 1863  682  189   96 2444   31 1550  437]
- [ 672  107    0    0    9  637  325    0    0    0    0    0    0  356
-     0    0 1145  469  201  161 1609    0 1810   17]
- [ 647  725   39   27 2295 1004  243    0    0    0    0    0    0    0
-     0    0  156    5  234   69  679    0  281   49]]
-(.venv) vision@VisionRPi:~/workspace/ZegarBiologicznyML$
+- `src/train_hour_regression_cyclic.py`
+	- regresja (sin, cos) z użyciem modeli sklearn (Ridge, HGB, RF) na `features_robust.csv`,
+	- metryki: Cyclic MAE, P90/P95, czas trenowania.
+- `src/train_hour_nn_cyclic.py`
+	- sieć MLP w PyTorch (wejście: cechy robust, wyjście: `[sin, cos]`),
+	- **czasowy split danych**: `time_based_split()` dzieli dane chronologicznie na train/val/test
+		po całych dniach (`datetime → date`),
+	- normalizacja cech liczona tylko na train, identyczna transformacja stosowana do val/test,
+	- zapisywany jest najlepszy checkpoint `models/best_mlp_cyclic.pt` według walidacyjnego Cyclic MAE.
+
+Wytrenowane modele klasyczne zapisywane są jako pliki `.pkl` w katalogu `models/`,
+natomiast model MLP jako plik `.pt` (stan sieci oraz parametry normalizacji).
+
+---
+
+## 6. Część implementacyjna (predykcja on‑line)
+
+Celem tej części jest wykorzystanie wytrenowanych modeli do przewidywania godziny na nowych obrazach
+oraz prezentowanie tej informacji użytkownikowi w sposób czytelny i ciągły.
+
+Główne skrypty:
+
+- `src/predict_hour.py`
+	- wczytuje zapisane modele oraz skalery,
+	- przyjmuje ścieżkę do obrazu, wylicza cechy (robust / advanced) i zwraca przewidywaną godzinę (tryb batch/off‑line).
+- `src/camera_hour_overlay.py`
+	- prosty overlay czasu na obrazie (tryb podglądu / debug),
+	- może korzystać z prostszych modeli baseline.
+- `src/camera_hour_overlay_advanced.py`, `src/camera_hour_overlay_rpi.py`
+	- integracja z OpenCV i/lub Raspberry Pi,
+	- pobranie klatki z kamery, predykcja godziny **aktualnym modelem produkcyjnym** (np. `best_mlp_cyclic.pt`),
+	- naniesienie opisu (overlay) i zapis / wyświetlenie w pętli.
+
+Powyższe skrypty pełnią rolę **warstwy implementacyjnej oraz narzędzia do weryfikacji jakości modelu w czasie rzeczywistym**:
+umożliwiają wizualną ocenę predykcji (porównanie przewidywanej godziny z rzeczywistą)
+bezpośrednio na obrazie z kamery.
+
+---
+
+## 7. Orkiestracja pipeline'u i logowanie
+
+Cały pipeline może zostać uruchomiony jednym poleceniem z katalogu głównego repozytorium:
+
+```bash
+./run_full_pipeline.sh
 ```
 
-### Wynik:
+Skrypt:
 
-**Accuracy ≈ 24–25%** przy 24 klasach
-(losowe zgadywanie dałoby 4.2%).
-
-To oznacza, że nawet z tak ograniczoną informacją model:
-
-* potrafi odróżniać dzień od nocy,
-* rozpoznaje porę popołudniową,
-* radzi sobie tam, gdzie kolorystyka światła jest charakterystyczna.
-
-Szczególnie dobrze wychodzą godziny:
-
-* 14–16 (jasny dzień),
-* 7–8 (charakterystyczny poranek),
-* 20 (wieczór ze sztucznym światłem).
-
-### Czas wykonania na Raspberry Pi:
-
-* ~2 godziny ładowania i przetwarzania 550k obrazów,
-* potem szybkie trenowanie.
-
-Osiągnęliśmy więc **pierwszy działający model**, który faktycznie nauczył się relacji między światłem na obrazie a godziną.
+- wykonuje kolejne kroki: `load_data`, `explore_data`, `precompute_mean_rgb`, `normalize_mean_rgb`,
+	`baseline_rgb`, `precompute_features_advanced`, `normalize_advanced`, `baseline_advanced`,
+	`baseline_advanced_logreg`, `precompute_features_robust`, `normalize_robust`,
+	`train_robust_time`, `train_hour_regression_cyclic`, `train_hour_nn_cyclic`,
+- zapisuje logi do katalogu `Logs/YYYY.MM.DD/`,
+- utrzymuje **checkpointy kroków** w `Logs/YYYY.MM.DD/checkpoints/` (`*.done`),
+	co pozwala wznawiać pipeline od wybranego etapu (np. `./run_full_pipeline.sh precompute_features_advanced`).
 
 ---
 
-# 🟩 **5. Główne wnioski z baseline**
+## 8. Podsumowanie
 
-1. Dane realnie zawierają sygnał pozwalający przewidzieć godzinę — projekt ma sens.
-2. Baseline radzi sobie z prostymi przypadkami, ale ma swoje ograniczenia:
+Projekt „Zegar biologiczny” realizuje kompletny łańcuch przetwarzania obejmujący:
 
-   * średnie RGB gubią kontekst,
-   * model nie widzi kształtów, cieni, nieba ani lamp,
-   * nie rozróżni np. 3:00 od 5:00, gdy średnia jasność jest podobna.
-3. Aby wejść na poziom 80–95% accuracy, konieczne będzie użycie modelu głębokiego (CNN).
+1. Pozyskanie obrazów i zapis etykiet czasu.
+2. Walidację i eksplorację zbioru danych.
+3. Korektę i rekonstrukcję etykiet tam, gdzie jest to konieczne.
+4. Ekstrakcję cech RGB/HSV/robust oraz ich normalizację.
+5. Trening wielu modeli (baseline oraz modeli zaawansowanych, w tym MLP z regresją cykliczną).
+6. Integrację modelu z kamerą i możliwość pracy w trybie on‑line.
 
-Baseline wykonuje więc swoją rolę:
-**jest punktem odniesienia do oceny jakości przyszłych, lepszych modeli.**
-
----
-
-# 🟦 **Etap projektu w którym jesteśmy**
-
-Masz teraz:
-
-* ogromny, kompletny dataset,
-* pełny pipeline w Pythonie,
-* sanity-check danych,
-* analizę statystyczną,
-* działający baseline ML,
-* model, który umie przewidywać godzinę lepiej niż losowość.
-
-To jest **połowa projektu ML** — i to ta trudniejsza połowa.
-
----
+Niniejszy dokument uzupełnia pozostałe materiały w katalogu `docs/` (np. szczegółowe opisy cech i eksperymentów)
+i ma służyć jako zwięzły, techniczny przegląd architektury projektu.
