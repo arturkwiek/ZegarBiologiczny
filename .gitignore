@@ -27,3 +27,7 @@ reports/*
 Thumbs.db
 .vscode/
 .idea/
+
+# ===== Misc =====
+*.csv
+*.npz
