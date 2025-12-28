@@ -2,7 +2,7 @@
 
 # Opis:
 #     Skrypt do trenowania bazowego modelu klasyfikacji godzin na podstawie rozszerzonych cech obrazu
-#     (features_advanced.csv: mean/std RGB + cechy HSV).
+#     (features_advanced.csv: mean/std RGB + statystyki HSV z kanałów H/S/V).
 #     - Wczytuje cechy z features_advanced.csv
 #     - Używa wybranych kolumn cech (r_mean, g_mean, b_mean, r_std, g_std, b_std, s_mean, v_mean)
 #     - Dzieli dane na zbiór treningowy i testowy
@@ -58,6 +58,8 @@ def load_features():
         "r_std",
         "g_std",
         "b_std",
+        "h_mean",
+        "h_std",
         "s_mean",
         "v_mean",
     ]

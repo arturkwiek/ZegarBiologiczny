@@ -1,0 +1,7 @@
+[INFO] === normalize_advanced ===
+[INFO] Wczytywanie danych z: features_advanced.csv
+[INFO] Shape: (471031, 13)
+[INFO] Liczba cech do normalizacji: 10
+[INFO] Liczenie mean/std na TRAIN: (376824, 10)
+[INFO] Zapisano znormalizowany CSV: features_advanced_normalized.csv
+[INFO] Zapisano scaler: features_advanced_scaler.npz

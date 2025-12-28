@@ -1,0 +1,98 @@
+[INFO] === baseline_rgb ===
+/home/vision/.local/lib/python3.10/site-packages/sklearn/linear_model/_logistic.py:1272: FutureWarning: 'multi_class' was deprecated in version 1.5 and will be removed in 1.8. From then on, it will always use 'multinomial'. Leave it to its default value to avoid this warning.
+  warnings.warn(
+[Parallel(n_jobs=-1)]: Using backend LokyBackend with 16 concurrent workers.
+Wczytano cechy: (471031, 6)
+/home/vision/.local/lib/python3.10/site-packages/sklearn/metrics/_classification.py:1731: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 in labels with no predicted samples. Use `zero_division` parameter to control this behavior.
+  _warn_prf(average, modifier, f"{metric.capitalize()} is", result.shape[0])
+/home/vision/.local/lib/python3.10/site-packages/sklearn/metrics/_classification.py:1731: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 in labels with no predicted samples. Use `zero_division` parameter to control this behavior.
+  _warn_prf(average, modifier, f"{metric.capitalize()} is", result.shape[0])
+/home/vision/.local/lib/python3.10/site-packages/sklearn/metrics/_classification.py:1731: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 in labels with no predicted samples. Use `zero_division` parameter to control this behavior.
+  _warn_prf(average, modifier, f"{metric.capitalize()} is", result.shape[0])
+Model zapisano do pliku: /mnt/c/Users/Dell/Desktop/Workplace/Repositories/ZegarBiologiczny/models/baseline_rgb_model.pkl
+
+=== Wyniki modelu bazowego (średnie RGB z cache) ===
+Accuracy: 0.23586441157738305
+
+Classification report:
+              precision    recall  f1-score   support
+
+           0       0.03      0.03      0.03      5370
+           1       0.00      0.00      0.00      5370
+           2       0.15      0.17      0.16      5372
+           3       0.00      0.00      0.00      5372
+           4       0.14      0.22      0.17      5371
+           5       0.21      0.47      0.29      5371
+           6       0.22      0.12      0.15      5371
+           7       0.56      0.43      0.49      5368
+           8       0.28      0.36      0.32      5366
+           9       0.00      0.00      0.00      5085
+          10       0.28      0.34      0.30      5190
+          11       0.22      0.27      0.24      5364
+          12       0.34      0.33      0.33      5696
+          13       0.34      0.33      0.33      6420
+          14       0.34      0.37      0.35      6244
+          15       0.63      0.61      0.62      6440
+          16       0.25      0.50      0.34      7216
+          17       0.20      0.17      0.18      7519
+          18       0.06      0.12      0.08      7519
+          19       0.18      0.13      0.15      7519
+          20       0.19      0.42      0.26      6656
+          21       0.00      0.00      0.00      5371
+          22       0.37      0.11      0.17      5370
+          23       0.15      0.01      0.02      5370
+
+    accuracy                           0.24    141310
+   macro avg       0.21      0.23      0.21    141310
+weighted avg       0.22      0.24      0.21    141310
+
+Macierz pomyłek:
+[[ 135   10  463    0 1030  863    0    0    0    0    0    0    0    0
+     0    0  903    2 1018    2  921    0    0   23]
+ [ 266    0  713    0  999  787    0    0    0    0    0    0    0    0
+     0    0  760    0 1420    0  425    0    0    0]
+ [ 423    1  934    0  975 1514    0    0    0    0    0    0    0    0
+     0    0  394    0 1051    0   62    0    0   18]
+ [ 934   29  822    0 1187 1396    0    0    0    0    0    0    0    0
+     0    0  327    0  639    0   11    0    0   27]
+ [1047   89  822    0 1184 1825    0    0    0    0    0    0    0    0
+     0    0   17    0  357    0    2    0    0   28]
+ [ 958  141  475    2  713 2511    0    0    0    0    0    0    0    0
+     0    0   13    0  527    0   17    0    0   14]
+ [ 302  292  133    0  528 1313  636    0    0    0    0    0    0   43
+    22  528  270    0  309   12  835    0   51   97]
+ [   0    0    0    0    0    0  104 2327  678    0  288    0  128  127
+   670 1046    0    0    0    0    0    0    0    0]
+ [   0    0    0    0    0    0    0  349 1951   56 1141  920  423  327
+   199    0    0    0    0    0    0    0    0    0]
+ [   0    0    0    0    0    0    0    0 1979    0 1145  881  259  796
+    25    0    0    0    0    0    0    0    0    0]
+ [   0    0    0    0    0    0    0    0  819  168 1750 1258  206  644
+   282   63    0    0    0    0    0    0    0    0]
+ [   0    0    0    0    0    0    0    0  186  143 1216 1462  871  484
+   880  122    0    0    0    0    0    0    0    0]
+ [   0    0    0    0    0    0    0    0  218   12  336 1351 1874  732
+   868    0  194   56   10   35    8    0    2    0]
+ [   0    0    0    0    0    0  291   60  608   47  219  707  663 2136
+  1254   11  109   49   12  104    1    0  149    0]
+ [   0    0    0    0    0    0    0  999  456    0  244  103  472  609
+  2338  497    0    0    0    2    0    0  524    0]
+ [   0    0    0    0    0    0  741  434    0    0    0   40  691  135
+   437 3902    0    0    0    0   29    0   31    0]
+ [   1    1  222    0  354  397  246    0    0    0    0    0    0    0
+     0    0 3581  972  397  362  679    0    1    3]
+ [   0    0   83    0  131  465   47    0    0    0    0    0    0    0
+     0    0 2274 1305  577 1729  907    0    0    1]
+ [   0    0  142    0  147  368    0    0    0    0    0    0    0    0
+     0    0 1279 1324  880  971 2408    0    0    0]
+ [  63    2  303    0  158    7  306    0    0    0    0    0    0    0
+     0    0  597 1081 2196 1014 1790    0    0    2]
+ [  42    2   87    0    1    0  171    0    0    0    0    0    0    0
+     0    0  536  747 1647  646 2768    0    0    9]
+ [   0    0   58    0  174  140   49    0    0    0    0    0    0    0
+     0    0 1248  468  877  736 1378    0  243    0]
+ [ 222    5  141    1   89  157  154    0    0    0    0    0    0  339
+     0    0  878  277  878   67 1539    0  598   25]
+ [ 697   28  665   77  788  274   91    0    0    0    0    0    0    0
+     0    0  741  344 1160    0  461    0    0   44]]
+Czas trenowania: 0:01:10

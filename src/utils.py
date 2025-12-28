@@ -36,6 +36,7 @@ def extract_rgb_hsv_stats(path):
     Zwraca rozszerzone cechy z obrazu:
     [r_mean, g_mean, b_mean,
      r_std, g_std, b_std,
+     h_mean, h_std,
      s_mean, v_mean]
     """
     img = cv2.imread(str(path))
@@ -52,15 +53,29 @@ def extract_rgb_hsv_stats(path):
     r_mean, g_mean, b_mean = r.mean(), g.mean(), b.mean()
     r_std, g_std, b_std = r.std(), g.std(), b.std()
 
-    # RGB -> HSV
+    # RGB -> HSV (OpenCV: H in [0,179], S,V in [0,255])
     img_hsv = cv2.cvtColor(img_rgb.astype(np.uint8), cv2.COLOR_RGB2HSV)
+    h = img_hsv[:, :, 0].astype(np.float32)
     s = img_hsv[:, :, 1].astype(np.float32)
     v = img_hsv[:, :, 2].astype(np.float32)
 
+    h_mean = h.mean()
+    h_std = h.std()
     s_mean = s.mean()
     v_mean = v.mean()
 
     return np.array(
-        [r_mean, g_mean, b_mean, r_std, g_std, b_std, s_mean, v_mean],
+        [
+            r_mean,
+            g_mean,
+            b_mean,
+            r_std,
+            g_std,
+            b_std,
+            h_mean,
+            h_std,
+            s_mean,
+            v_mean,
+        ],
         dtype=np.float32,
     )

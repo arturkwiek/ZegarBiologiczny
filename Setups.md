@@ -24,3 +24,72 @@ lsof -t -i:8080 | xargs kill -9
 
 cd ~/www
 python3 -m http.server 8080
+
+
+# Pipeline ML i checkpointy
+
+Do uruchomienia pełnego pipeline'u (walidacja danych, ekstrakcja cech, normalizacja, trening modeli) służy skrypt:
+
+```bash
+./run_full_pipeline.sh
+```
+
+Domyślnie korzysta on z **checkpointów** zapisywanych w katalogu:
+
+```text
+Logs/YYYY.MM.DD/checkpoints/
+```
+
+Każdy krok po udanym wykonaniu tworzy tam plik:
+
+```text
+<nazwa_kroku>.done
+```
+
+Przy kolejnym uruchomieniu tego samego dnia kroki z istniejącym `.done` są pomijane.
+
+Lista głównych kroków:
+
+- `load_data`
+- `explore_data`
+- `precompute_mean_rgb`
+- `normalize_mean_rgb`
+- `baseline_rgb`
+- `precompute_features_advanced`
+- `normalize_advanced`
+- `baseline_advanced`
+- `baseline_advanced_logreg`
+- `precompute_features_robust`
+- `normalize_robust`
+- `train_robust_time`
+- `train_hour_regression_cyclic`
+- `train_hour_nn_cyclic`
+
+## Wznowienie od konkretnego kroku
+
+Jeśli któryś krok zakończy się błędem, w logu pojawi się podpowiedź, jak wznowić od tego miejsca, np.:
+
+```bash
+./run_full_pipeline.sh normalize_advanced
+```
+
+Podanie nazwy kroku jako argumentu oznacza:
+
+- wcześniejsze kroki są pomijane po **nazwie kroku** (nie po checkpointach)
+- wskazany krok oraz wszystkie kolejne są wykonywane ponownie (checkpointy są ignorowane)
+
+## Reset checkpointów dla dnia
+
+Aby całkowicie powtórzyć pipeline dla konkretnej daty (np. 2025.12.26), usuń pliki `.done`:
+
+```bash
+rm Logs/2025.12.26/checkpoints/*.done
+```
+
+lub cały katalog z checkpointami tego dnia:
+
+```bash
+rm -r Logs/2025.12.26/checkpoints
+```
+
+Po takim resecie `./run_full_pipeline.sh` wykona wszystkie kroki od nowa.

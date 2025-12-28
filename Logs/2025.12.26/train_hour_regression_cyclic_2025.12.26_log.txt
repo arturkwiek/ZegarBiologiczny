@@ -1,0 +1,49 @@
+[INFO] === train_hour_regression_cyclic ===
+[INFO] Start: regresja cykliczna godziny (sin/cos)
+[INFO] Wczytywanie danych z: features_robust.csv
+[INFO] Wczytano dataframe: shape=(471031, 61)
+[INFO] Liczba cech wejściowych: 58
+[INFO] Przykładowe cechy: ['r_mean', 'g_mean', 'b_mean', 'r_std', 'g_std', 'b_std', 'h_mean', 's_mean', 'v_mean', 'h_std'] ...
+[INFO] Budowa macierzy X (float32) i wektora y_hour
+[INFO] X shape=(471031, 58), y_hour shape=(471031,)
+[INFO] Transformacja celu: hour -> (sin, cos)
+[INFO] y_sc shape=(471031, 2)
+[INFO] Podział train/test (80/20) ze stratify po godzinie
+[INFO] Train: X=(376824, 58), Test: X=(94207, 58)
+[INFO] --------------------------------------------------------------------------------
+[INFO] Trening modelu: ridge
+/home/vision/.local/lib/python3.10/site-packages/sklearn/linear_model/_ridge.py:213: LinAlgWarning: Ill-conditioned matrix (rcond=1.25391e-08): result may not be accurate.
+  return linalg.solve(A, Xy, assume_a="pos", overwrite_a=True).T
+/home/vision/.local/lib/python3.10/site-packages/sklearn/linear_model/_ridge.py:213: LinAlgWarning: Ill-conditioned matrix (rcond=1.25391e-08): result may not be accurate.
+  return linalg.solve(A, Xy, assume_a="pos", overwrite_a=True).T
+[INFO] Koniec fit: 0.89s
+[INFO] Predykcja na zbiorze testowym
+[INFO] Wyniki [ridge]
+  Cyclic MAE (h): 2.006
+  Naive  MAE (h): 3.523
+  P90 cyclic err (h): 4.407
+  P95 cyclic err (h): 5.590
+  Fit time: 0.89s
+[INFO] --------------------------------------------------------------------------------
+[INFO] Trening modelu: hgb
+[INFO] Koniec fit: 9.56s
+[INFO] Predykcja na zbiorze testowym
+[INFO] Wyniki [hgb]
+  Cyclic MAE (h): 0.643
+  Naive  MAE (h): 1.413
+  P90 cyclic err (h): 1.564
+  P95 cyclic err (h): 2.173
+  Fit time: 9.56s
+[INFO] --------------------------------------------------------------------------------
+[INFO] Trening modelu: rf
+[INFO] Koniec fit: 1988.94s
+[INFO] Predykcja na zbiorze testowym
+[INFO] Wyniki [rf]
+  Cyclic MAE (h): 0.351
+  Naive  MAE (h): 0.832
+  P90 cyclic err (h): 1.142
+  P95 cyclic err (h): 1.753
+  Fit time: 1988.94s
+[INFO] ================================================================================
+[INFO] Najlepszy model wg Cyclic MAE: rf (Cyclic MAE=0.351h)
+[INFO] Całkowity czas wykonania: 2026.71s

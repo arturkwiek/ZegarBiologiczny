@@ -1,0 +1,7 @@
+[INFO] === normalize_mean_rgb ===
+[INFO] Wczytywanie danych z: features_mean_rgb.csv
+[INFO] Shape: (471031, 6)
+[INFO] Liczba cech do normalizacji: 3
+[INFO] Liczenie mean/std na TRAIN: (376824, 3)
+[INFO] Zapisano znormalizowany CSV: features_mean_rgb_normalized.csv
+[INFO] Zapisano scaler: features_mean_rgb_scaler.npz

@@ -1,0 +1,64 @@
+[INFO] === train_robust_time ===
+/home/vision/.local/lib/python3.10/site-packages/sklearn/linear_model/_logistic.py:473: ConvergenceWarning: lbfgs failed to converge after 1000 iteration(s) (status=1):
+STOP: TOTAL NO. OF ITERATIONS REACHED LIMIT
+
+Increase the number of iterations to improve the convergence (max_iter=1000).
+You might also want to scale the data as shown in:
+    https://scikit-learn.org/stable/modules/preprocessing.html
+Please also refer to the documentation for alternative solver options:
+    https://scikit-learn.org/stable/modules/linear_model.html#logistic-regression
+  n_iter_i = _check_optimize_result(
+Wczytano: (471031, 61)
+Bin size = 4, liczba klas = 6
+
+================================================================================
+Trening modelu: logreg
+Accuracy (top-1): 0.7820
+Accuracy (top-2): 0.9557
+Accuracy (top-3): 0.9920
+Circular MAE (w godzinach): 1.693
+Confident accuracy (thr=0.45): 0.8098 przy coverage=0.923
+
+================================================================================
+Trening modelu: rf
+Accuracy (top-1): 0.9280
+Accuracy (top-2): 0.9908
+Accuracy (top-3): 0.9994
+Circular MAE (w godzinach): 1.152
+Confident accuracy (thr=0.45): 0.9338 przy coverage=0.988
+
+================================================================================
+Trening modelu: gb
+Accuracy (top-1): 0.8915
+Accuracy (top-2): 0.9774
+Accuracy (top-3): 0.9965
+Circular MAE (w godzinach): 1.287
+Confident accuracy (thr=0.45): 0.9029 przy coverage=0.978
+
+################################################################################
+Najlepszy model: rf (top-1 accuracy = 0.9280)
+################################################################################
+
+Classification report (binning):
+              precision    recall  f1-score   support
+
+           0       0.76      0.88      0.81     14323
+           1       0.87      0.79      0.83     14321
+           2       1.00      1.00      1.00     14004
+           3       1.00      1.00      1.00     16534
+           4       0.99      0.96      0.98     19848
+           5       0.94      0.92      0.93     15177
+
+    accuracy                           0.93     94207
+   macro avg       0.93      0.92      0.92     94207
+weighted avg       0.93      0.93      0.93     94207
+
+
+Confusion matrix (binning):
+[[12565  1402     0     0    24   332]
+ [ 2967 11257     2     1    10    84]
+ [    0     1 14002     1     0     0]
+ [    0     0     2 16532     0     0]
+ [  205    16     0     2 19150   475]
+ [  829   200     0     0   229 13919]]
+Czas trenowania: 1:57:55

@@ -1,0 +1,41 @@
+[INFO] === explore_data ===
+/mnt/c/Users/Dell/Desktop/Workplace/Repositories/ZegarBiologiczny/src/explore_data.py:57: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.show()
+/mnt/c/Users/Dell/Desktop/Workplace/Repositories/ZegarBiologiczny/src/explore_data.py:74: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.show()
+Liczba rekordów: 471095
+Przykładowe rekordy:
+                       filepath  hour             datetime
+0  11/30/12/20251130_124132.jpg    12  2025-11-30T12:41:32
+1  11/30/12/20251130_124133.jpg    12  2025-11-30T12:41:33
+2  11/30/12/20251130_124134.jpg    12  2025-11-30T12:41:34
+3  11/30/12/20251130_124135.jpg    12  2025-11-30T12:41:35
+4  11/30/12/20251130_124136.jpg    12  2025-11-30T12:41:36
+
+Rozkład godzin:
+hour
+0     17900
+1     17901
+2     17906
+3     17906
+4     17905
+5     17905
+6     17903
+7     17892
+8     17887
+9     16983
+10    17301
+11    17879
+12    18986
+13    21400
+14    20846
+15    21468
+16    24052
+17    25063
+18    25064
+19    25063
+20    22185
+21    17902
+22    17899
+23    17899
+Name: count, dtype: int64

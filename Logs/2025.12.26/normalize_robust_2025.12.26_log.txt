@@ -1,0 +1,7 @@
+[INFO] === normalize_robust ===
+[INFO] Wczytywanie danych z: features_robust.csv
+[INFO] Shape: (471031, 61)
+[INFO] Liczba cech do normalizacji: 58
+[INFO] Liczenie mean/std na TRAIN: (376824, 58)
+[INFO] Zapisano znormalizowany CSV: features_robust_normalized.csv
+[INFO] Zapisano scaler: features_robust_scaler.npz

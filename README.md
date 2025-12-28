@@ -194,3 +194,20 @@ tmux new -s vision \; \
 * HTTP serwuje aktualny obraz
 * SSH możesz zamknąć
 * wszystko żyje w `tmux`
+
+---
+
+# Uruchomienie pełnego pipeline'u ML (ekstrakcja cech + modele)
+
+Repozytorium zawiera skrypt, który odpala **cały pipeline**: walidację danych, eksplorację, ekstrakcję cech (RGB, advanced, robust), normalizację oraz trening wszystkich modeli.
+
+## Wymagania
+
+- zainstalowane zależności z requirements.txt
+- uruchamiasz z katalogu głównego repozytorium ZegarBiologiczny
+- dostępny `python` odpowiadający środowisku projektu
+
+## Jedno polecenie
+
+```bash
+./run_full_pipeline.sh

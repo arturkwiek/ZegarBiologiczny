@@ -5,7 +5,7 @@
 #     Skrypt do ekstrakcji i zapisu rozszerzonych cech RGB/HSV z obrazów na podstawie pliku labels.csv.
 #     Dla każdego obrazu:
 #       - Wczytuje ścieżki i metadane z labels.csv
-#       - Wylicza cechy: średnie i odchylenia RGB oraz średnie S i V (funkcja extract_rgb_hsv_stats)
+#       - Wylicza cechy: średnie i odchylenia RGB oraz statystyki H/S/V (funkcja extract_rgb_hsv_stats)
 #       - Zapisuje wynikowe cechy do pliku features_advanced.csv
 #       - Wyświetla postęp przetwarzania (tqdm) oraz podsumowanie czasu
 
@@ -51,6 +51,8 @@ def main() -> None:
             r_std,
             g_std,
             b_std,
+            h_mean,
+            h_std,
             s_mean,
             v_mean,
         ) = feat.tolist()
@@ -66,6 +68,8 @@ def main() -> None:
                 "r_std": float(r_std),
                 "g_std": float(g_std),
                 "b_std": float(b_std),
+                "h_mean": float(h_mean),
+                "h_std": float(h_std),
                 "s_mean": float(s_mean),
                 "v_mean": float(v_mean),
             }

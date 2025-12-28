@@ -84,8 +84,12 @@ def extract_robust_image_features(
     feats["r_std"] = float(r.std())
     feats["g_std"] = float(g.std())
     feats["b_std"] = float(b.std())
+
+    # HSV: dodajemy także statystyki kanału H, oprócz S i V
+    feats["h_mean"] = float(h.mean())
     feats["s_mean"] = float(s.mean())
     feats["v_mean"] = float(v.mean())
+    feats["h_std"] = float(h.std())
     feats["s_std"] = float(s.std())
     feats["v_std"] = float(v.std())
 

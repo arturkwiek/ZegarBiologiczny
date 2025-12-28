@@ -1,0 +1,127 @@
+[INFO] === baseline_advanced ===
+2025-12-27 09:03:56,221 INFO: Rozpoczynam wczytywanie cech...
+2025-12-27 09:03:56,222 INFO: Wczytywanie cech z pliku CSV...
+2025-12-27 09:03:57,663 INFO: Wczytano cechy rozszerzone: (471031, 13)
+2025-12-27 09:03:57,700 INFO: Cechy wczytane.
+2025-12-27 09:03:57,700 INFO: Podział na zbiór treningowy i testowy...
+2025-12-27 09:03:57,828 INFO: Rozmiar zbioru treningowego: (329721, 10), testowego: (141310, 10)
+2025-12-27 09:03:57,836 INFO: Trenowanie modelu: logreg
+/home/vision/.local/lib/python3.10/site-packages/sklearn/linear_model/_logistic.py:1272: FutureWarning: 'multi_class' was deprecated in version 1.5 and will be removed in 1.8. From then on, it will always use 'multinomial'. Leave it to its default value to avoid this warning.
+  warnings.warn(
+
+=== Trenowanie modelu: logreg ===
+2025-12-27 09:22:46,352 INFO: Model logreg wytrenowany.
+2025-12-27 09:22:46,395 INFO: Predykcja zakończona dla modelu: logreg
+2025-12-27 09:22:46,402 INFO: Trenowanie modelu: knn
+2025-12-27 09:22:47,026 INFO: Model knn wytrenowany.
+2025-12-27 09:22:54,323 INFO: Predykcja zakończona dla modelu: knn
+2025-12-27 09:22:54,325 INFO: Trenowanie modelu: rf
+2025-12-27 09:29:47,571 INFO: Model rf wytrenowany.
+2025-12-27 09:30:15,107 INFO: Predykcja zakończona dla modelu: rf
+2025-12-27 09:30:15,109 INFO: Trenowanie modelu: gb
+2025-12-27 10:37:05,118 INFO: Model gb wytrenowany.
+2025-12-27 10:37:10,185 INFO: Predykcja zakończona dla modelu: gb
+2025-12-27 10:37:10,195 INFO: Najlepszy model: rf (accuracy = 0.8006)
+Model logreg zapisano do pliku: /mnt/c/Users/Dell/Desktop/Workplace/Repositories/ZegarBiologiczny/models/baseline_advanced_logreg_model.pkl
+Accuracy (logreg): 0.3583
+
+=== Trenowanie modelu: knn ===
+Model knn zapisano do pliku: /mnt/c/Users/Dell/Desktop/Workplace/Repositories/ZegarBiologiczny/models/baseline_advanced_knn_model.pkl
+Accuracy (knn): 0.7619
+
+=== Trenowanie modelu: rf ===
+Model rf zapisano do pliku: /mnt/c/Users/Dell/Desktop/Workplace/Repositories/ZegarBiologiczny/models/baseline_advanced_rf_model.pkl
+Accuracy (rf): 0.8006
+
+=== Trenowanie modelu: gb ===
+Model gb zapisano do pliku: /mnt/c/Users/Dell/Desktop/Workplace/Repositories/ZegarBiologiczny/models/baseline_advanced_gb_model.pkl
+Accuracy (gb): 0.7286
+
+################################################################################
+Najlepszy model: rf (accuracy = 0.8006)
+################################################################################
+
+Pełny raport dla najlepszego modelu:
+
+Classification report:
+              precision    recall  f1-score   support
+
+           0       0.63      0.59      0.61      5370
+           1       0.43      0.45      0.44      5370
+           2       0.37      0.39      0.38      5372
+           3       0.31      0.32      0.31      5372
+           4       0.30      0.32      0.31      5371
+           5       0.51      0.47      0.49      5371
+           6       0.88      0.84      0.86      5371
+           7       1.00      1.00      1.00      5368
+           8       1.00      1.00      1.00      5366
+           9       1.00      1.00      1.00      5085
+          10       1.00      1.00      1.00      5190
+          11       1.00      1.00      1.00      5364
+          12       1.00      1.00      1.00      5696
+          13       1.00      1.00      1.00      6420
+          14       1.00      1.00      1.00      6244
+          15       1.00      1.00      1.00      6440
+          16       0.92      0.91      0.92      7216
+          17       0.83      0.84      0.83      7519
+          18       0.84      0.85      0.85      7519
+          19       0.84      0.79      0.81      7519
+          20       0.84      0.84      0.84      6656
+          21       0.86      0.90      0.88      5371
+          22       0.87      0.84      0.85      5370
+          23       0.68      0.69      0.69      5370
+
+    accuracy                           0.80    141310
+   macro avg       0.80      0.79      0.79    141310
+weighted avg       0.80      0.80      0.80    141310
+
+Macierz pomyłek:
+[[3171  909  361  215  193   93   24    0    0    0    0    0    0    0
+     0    0    1    0    0   22   48    3    9  321]
+ [ 748 2433  805  485  419   99   30    0    0    0    0    0    0    0
+     0    0    0    0    0   23    2    6   11  309]
+ [ 246  766 2100  957  665  314   42    0    0    0    0    0    0    0
+     0    0    0    0    0  103   51    1   50   77]
+ [ 170  541  915 1706 1248  445   55    0    0    0    0    0    0    0
+     0    0    0    0    0   64   41    0   21  166]
+ [ 198  399  597 1188 1727  977   86    0    0    0    0    0    0    0
+     0    0    0    0    0    7    9    0   11  172]
+ [ 133   99  454  583 1150 2510  330    0    0    0    0    0    0    0
+     0    0    0    0    0    7    2    0    2  101]
+ [  28   45   82  114  143  416 4498    5    0    0    0    0    0    0
+     0    0    0    0    0    3    2    0    0   35]
+ [   0    0    0    0    0    0    0 5364    0    0    0    1    0    0
+     2    1    0    0    0    0    0    0    0    0]
+ [   0    0    0    0    0    0    0    1 5358    6    0    0    0    0
+     1    0    0    0    0    0    0    0    0    0]
+ [   0    0    0    0    0    0    0    0    2 5072   11    0    0    0
+     0    0    0    0    0    0    0    0    0    0]
+ [   0    0    0    0    0    0    0    0    0    8 5176    5    1    0
+     0    0    0    0    0    0    0    0    0    0]
+ [   0    0    0    0    0    0    0    0    0    0    7 5354    3    0
+     0    0    0    0    0    0    0    0    0    0]
+ [   0    0    0    0    0    0    0    0    0    0    1    2 5687    6
+     0    0    0    0    0    0    0    0    0    0]
+ [   0    0    0    0    0    0    0    0    0    0    0    0    6 6403
+    10    0    1    0    0    0    0    0    0    0]
+ [   0    0    0    0    0    0    0    1    0    0    0    0    0   10
+  6229    4    0    0    0    0    0    0    0    0]
+ [   0    0    0    0    0    0    5    1    0    0    0    0    1    3
+     0 6430    0    0    0    0    0    0    0    0]
+ [   0    0    0    0    0    0    0    0    0    0    0    0    0    0
+     0    5 6579  547   71    2    0   12    0    0]
+ [   0    0    0    0    0    0    0    0    0    0    0    0    0    0
+     0    0  493 6327  596   84    9   10    0    0]
+ [   0    0    0    0    0    0    0    0    0    0    0    0    0    0
+     0    0   30  680 6403  400    1    4    0    1]
+ [   7   14  154   77   18    8    1    0    0    0    0    0    0    0
+     0    0    0   78  541 5913  632   57   14    5]
+ [   3   10   37   34   11    0    0    0    0    0    0    0    0    0
+     0    0    0    7    5  389 5619  487   31   23]
+ [   5   12    5    0    0    0    0    0    0    0    0    0    0    0
+     0    0    9    6    1   35  253 4852  189    4]
+ [   0    4   41   22   22   12    2    0    0    0    0    0    0    0
+     0    0    1    0    0    4   25  215 4507  515]
+ [ 323  445   50  155  188   89   17    0    0    0    0    0    0    0
+     0    0    0    0   10   10   12   23  339 3709]]
+Czas trenowania: 1:33:14
