@@ -29,5 +29,6 @@ Thumbs.db
 .idea/
 
 # ===== Misc =====
-*.csv
+*.pkl
+*.pt
 *.npz
