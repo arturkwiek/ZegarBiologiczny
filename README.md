@@ -211,3 +211,16 @@ Repozytorium zawiera skrypt, który odpala **cały pipeline**: walidację danych
 
 ```bash
 ./run_full_pipeline.sh
+```
+## Pełny pipeline: PC → modele → Raspberry Pi
+
+Pełny opis kroków od trenowania na PC po uruchomienie overlay na Raspberry Pi
+znajdziesz w dokumencie:
+
+- [docs/pipeline_pc_rpi.md](docs/pipeline_pc_rpi.md)
+
+W skrócie:
+
+- modele trenowane są na PC i zapisywane do `models/pc/`,
+- krok `prepare_rpi_rf` w `run_full_pipeline.sh` kopiuje model RF do `models/rpi/`,
+- na RPi skrypt `src.camera_hour_overlay_mlp_rpi` korzysta z modeli w `models/rpi/`.
