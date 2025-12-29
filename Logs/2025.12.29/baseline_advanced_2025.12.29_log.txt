@@ -1,0 +1,20 @@
+[INFO] === baseline_advanced ===
+2025-12-29 18:36:33,741 INFO: Rozpoczynam wczytywanie cech...
+2025-12-29 18:36:33,742 INFO: Wczytywanie cech z pliku CSV...
+2025-12-29 18:36:35,903 INFO: Wczytano cechy rozszerzone: (471031, 11)
+2025-12-29 18:36:35,908 WARNING: Brak kolumn ['h_mean', 'h_std'] w features_advanced.csv – trenowanie tylko na: ['r_mean', 'g_mean', 'b_mean', 'r_std', 'g_std', 'b_std', 's_mean', 'v_mean']
+2025-12-29 18:36:35,943 INFO: Cechy wczytane.
+2025-12-29 18:36:35,943 INFO: Podział na zbiór treningowy i testowy...
+2025-12-29 18:36:36,119 INFO: Rozmiar zbioru treningowego: (329721, 8), testowego: (141310, 8)
+2025-12-29 18:36:36,133 INFO: Trenowanie modelu: logreg
+/mnt/c/Users/Dell/Desktop/Workplace/Repositories/ZegarBiologiczny/.venv/lib/python3.11/site-packages/sklearn/linear_model/_logistic.py:1184: FutureWarning: 'n_jobs' has no effect since 1.8 and will be removed in 1.10. You provided 'n_jobs=-1', please leave it unspecified.
+  warnings.warn(msg, category=FutureWarning)
+2025-12-29 18:59:14,580 INFO: Model logreg wytrenowany.
+2025-12-29 18:59:14,623 INFO: Predykcja zakończona dla modelu: logreg
+2025-12-29 18:59:14,632 INFO: Trenowanie modelu: knn
+2025-12-29 18:59:15,486 INFO: Model knn wytrenowany.
+2025-12-29 18:59:19,210 INFO: Predykcja zakończona dla modelu: knn
+2025-12-29 18:59:19,213 INFO: Trenowanie modelu: rf
+2025-12-29 18:59:28,438 INFO: Model rf wytrenowany.
+2025-12-29 18:59:29,162 INFO: Predykcja zakończona dla modelu: rf
+2025-12-29 18:59:29,165 INFO: Trenowanie modelu: gb
