@@ -1,0 +1,17 @@
+[INFO] === baseline_advanced_logreg ===
+2025-12-29 20:19:32,499 INFO: Wczytywanie cech z pliku CSV...
+2025-12-29 20:19:35,489 INFO: Wczytano cechy rozszerzone: (471031, 11)
+2025-12-29 20:19:35,555 INFO: Użyte cechy: ['r_mean', 'g_mean', 'b_mean', 'r_std', 'g_std', 'b_std', 's_mean', 'v_mean']
+2025-12-29 20:19:35,580 INFO: Podział na zbiór treningowy i testowy...
+2025-12-29 20:19:35,817 INFO: Rozmiar zbioru treningowego: (329721, 8), testowego: (141310, 8)
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/mnt/c/Users/Dell/Desktop/Workplace/Repositories/ZegarBiologiczny/src/baseline_advanced_logreg.py", line 125, in <module>
+    main()
+  File "/mnt/c/Users/Dell/Desktop/Workplace/Repositories/ZegarBiologiczny/src/baseline_advanced_logreg.py", line 88, in main
+    LogisticRegression(
+TypeError: LogisticRegression.__init__() got an unexpected keyword argument 'multi_class'
+[ERROR] Krok 'baseline_advanced_logreg' zakończył się błędem. Sprawdź log: Logs/2025.12.29/baseline_advanced_logreg_2025.12.29_log.txt
+[ERROR] Aby wznowić pipeline od tego kroku, uruchom:
+[ERROR]   ./run_full_pipeline.sh baseline_advanced_logreg
