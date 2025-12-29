@@ -42,6 +42,7 @@ from .camera_hour_overlay_mlp import (
 MODELS_DIR = Path("models") / "rpi"
 MLP_CKPT = MODELS_DIR / "best_mlp_cyclic.pt"
 ADV_RF_PKL = MODELS_DIR / "baseline_advanced_rf_model.pkl"
+CNN_CKPT = MODELS_DIR / "best_cnn_hour.pt"
 
 import pickle
 
@@ -222,19 +223,39 @@ def main() -> None:
         action="store_true",
         help="Wymuś tryb awaryjny: RandomForest na cechach advanced",
     )
+    ap.add_argument(
+        "--use_cnn",
+        action="store_true",
+        help="Użyj modelu CNN na całym obrazie (eksperymentalne)",
+    )
     args = ap.parse_args()
 
-    # --- Wybór trybu: MLP (robust) vs fallback RF (advanced) ---
-    robust_extractor: Optional[callable] = None if args.use_fallback else _try_import_robust_extractor()
-    use_mlp = (robust_extractor is not None) and MLP_CKPT.exists()
+    # --- Wybór trybu: CNN (pełny obraz) vs MLP (robust) vs fallback RF (advanced) ---
+    use_cnn = bool(args.use_cnn)
+    robust_extractor: Optional[callable] = None if (args.use_fallback or use_cnn) else _try_import_robust_extractor()
+    use_mlp = (not use_cnn) and (robust_extractor is not None) and MLP_CKPT.exists()
 
     mlp_model: Optional[MLP]
     mean: Optional[np.ndarray]
     std: Optional[np.ndarray]
     rf_clf = None
+    cnn_model = None
     expected_feats: Optional[int] = None
 
-    if use_mlp:
+    if use_cnn:
+        import torch
+
+        if not CNN_CKPT.exists():
+            raise FileNotFoundError(
+                f"Nie znaleziono pliku {CNN_CKPT}. "
+                "Uruchom: python -m src.train_hour_cnn (żeby zapisać best_cnn_hour.pt)."
+            )
+        cnn_model = torch.load(CNN_CKPT, map_location="cpu")
+        cnn_model.eval()
+        mean = std = None
+        mode_name = "CNN (full frame)"
+        print(f"[INFO] Załadowano CNN z {CNN_CKPT}")
+    elif use_mlp:
         mlp_model, mean, std = load_mlp_checkpoint(MLP_CKPT)
         mlp_model.eval()
         mode_name = "MLP cyclic (robust)"
@@ -288,7 +309,30 @@ def main() -> None:
             fps = inst_fps if fps is None else (0.9 * fps + 0.1 * inst_fps)
 
         # --- Predykcja godziny ---
-        if use_mlp:
+        if use_cnn:
+            # pełny obraz przez CNN (klasy 0..23)
+            import torch
+
+            frame_small = cv2.resize(frame, (224, 224), interpolation=cv2.INTER_AREA)
+            img_rgb = cv2.cvtColor(frame_small, cv2.COLOR_BGR2RGB).astype(np.float32) / 255.0
+            img_chw = np.transpose(img_rgb, (2, 0, 1))
+            x = torch.from_numpy(img_chw).unsqueeze(0)
+
+            with torch.no_grad():
+                logits = cnn_model(x)
+                prob = torch.softmax(logits, dim=1)[0].cpu().numpy()
+
+            pred_class = int(np.argmax(prob))
+            hour_float = float(pred_class)
+
+            raw_conf = float(np.max(prob))
+            if smoothed_conf is None:
+                smoothed_conf = raw_conf
+            else:
+                smoothed_conf = smooth * smoothed_conf + (1.0 - smooth) * raw_conf
+            conf_to_show = smoothed_conf
+
+        elif use_mlp:
             # cechy robust (na downskalowanej klatce dla oszczędności CPU)
             frame_small = cv2.resize(frame, (320, 180), interpolation=cv2.INTER_AREA)
             feats = robust_extractor(frame_small).astype(np.float32).reshape(1, -1)
