@@ -32,15 +32,16 @@ import cv2
 import numpy as np
 
 from .camera_hour_overlay_mlp import (
-    MODELS_DIR,
-    MLP_CKPT,
-    ADV_RF_PKL,
     MLP,
     _try_import_robust_extractor,
     extract_advanced_features_from_bgr,
     load_mlp_checkpoint,
     sincos_to_hour,
 )
+
+MODELS_DIR = Path("models") / "rpi"
+MLP_CKPT = MODELS_DIR / "best_mlp_cyclic.pt"
+ADV_RF_PKL = MODELS_DIR / "baseline_advanced_rf_model.pkl"
 
 import pickle
 
@@ -54,7 +55,7 @@ def draw_overlay(
 ) -> np.ndarray:
     """Rysuje panel informacyjny u góry obrazu (styl jak w camera_hour_overlay_rpi)."""
     h, w = frame.shape[:2]
-    panel_h = 100
+    panel_h = 130
 
     overlay = frame.copy()
     cv2.rectangle(overlay, (0, 0), (w, panel_h), (0, 0, 0), -1)
@@ -63,11 +64,17 @@ def draw_overlay(
 
     now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    # Główna linia z godziną
+    # Wspólne wiersze tekstu w panelu
+    y_hour = 36
+    y_date = 64
+    y_mode = 92
+    y_conf = 120
+
+    # Główna linia z godziną (wiersz 1)
     cv2.putText(
         frame,
         text,
-        (20 + 2, 38 + 2),
+        (20 + 2, y_hour + 2),
         cv2.FONT_HERSHEY_SIMPLEX,
         1.0,
         (0, 0, 0),
@@ -77,7 +84,7 @@ def draw_overlay(
     cv2.putText(
         frame,
         text,
-        (20, 38),
+        (20, y_hour),
         cv2.FONT_HERSHEY_SIMPLEX,
         1.0,
         (255, 255, 255),
@@ -85,32 +92,10 @@ def draw_overlay(
         cv2.LINE_AA,
     )
 
-    # Tryb/model
-    mode_text = f"Model: {mode_name}"
-    cv2.putText(
-        frame,
-        mode_text,
-        (20 + 2, 72 + 2),
-        cv2.FONT_HERSHEY_SIMPLEX,
-        0.7,
-        (0, 0, 0),
-        3,
-        cv2.LINE_AA,
-    )
-    cv2.putText(
-        frame,
-        mode_text,
-        (20, 72),
-        cv2.FONT_HERSHEY_SIMPLEX,
-        0.7,
-        (255, 255, 255),
-        2,
-        cv2.LINE_AA,
-    )
-
-    # Data/czas systemowy w prawym górnym rogu panelu
-    date_x = w - 350
-    date_y = 38
+    # Data/czas (wiersz 2, wyrównany do prawej)
+    (text_w, _), _ = cv2.getTextSize(now_str, cv2.FONT_HERSHEY_SIMPLEX, 0.8, 2)
+    date_x = max(20, w - text_w - 20)
+    date_y = y_date
     cv2.putText(
         frame,
         now_str,
@@ -132,6 +117,29 @@ def draw_overlay(
         cv2.LINE_AA,
     )
 
+    # Tryb/model (wiersz 3)
+    mode_text = f"Model: {mode_name}"
+    cv2.putText(
+        frame,
+        mode_text,
+        (20 + 2, y_mode + 2),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.7,
+        (0, 0, 0),
+        3,
+        cv2.LINE_AA,
+    )
+    cv2.putText(
+        frame,
+        mode_text,
+        (20, y_mode),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.7,
+        (255, 255, 255),
+        2,
+        cv2.LINE_AA,
+    )
+
     # Pasek pewności (0..1)
     if confidence is not None:
         conf_clamped = max(0.0, min(1.0, float(confidence)))
@@ -139,7 +147,7 @@ def draw_overlay(
         cv2.putText(
             frame,
             conf_text,
-            (20 + 2, 104 + 2),
+            (20 + 2, y_conf + 2),
             cv2.FONT_HERSHEY_SIMPLEX,
             0.7,
             (0, 0, 0),
@@ -149,15 +157,15 @@ def draw_overlay(
         cv2.putText(
             frame,
             conf_text,
-            (20, 104),
+            (20, y_conf),
             cv2.FONT_HERSHEY_SIMPLEX,
             0.7,
             (255, 255, 255),
             2,
             cv2.LINE_AA,
         )
-
-        bar_x, bar_y = 260, 86
+        # Pasek pod tekstem pewności
+        bar_x, bar_y = 260, y_conf - 18
         bar_w, bar_h = 260, 18
         cv2.rectangle(frame, (bar_x - 1, bar_y - 1), (bar_x + bar_w + 1, bar_y + bar_h + 1), (0, 0, 0), 4)
         cv2.rectangle(frame, (bar_x, bar_y), (bar_x + bar_w, bar_y + bar_h), (200, 200, 200), 2)
@@ -224,9 +232,11 @@ def main() -> None:
     mean: Optional[np.ndarray]
     std: Optional[np.ndarray]
     rf_clf = None
+    expected_feats: Optional[int] = None
 
     if use_mlp:
         mlp_model, mean, std = load_mlp_checkpoint(MLP_CKPT)
+        mlp_model.eval()
         mode_name = "MLP cyclic (robust)"
         print(f"[INFO] Załadowano MLP z {MLP_CKPT}")
     else:
@@ -240,6 +250,9 @@ def main() -> None:
         mean = std = None
         mode_name = "RF classify (advanced) [fallback]"
         print(f"[INFO] Załadowano fallback RF z {ADV_RF_PKL}")
+        expected_feats = getattr(rf_clf, "n_features_in_", None)
+        if expected_feats is not None:
+            print(f"[INFO] RF oczekuje {expected_feats} cech wejściowych")
 
     cap = cv2.VideoCapture(args.cam)
     if not cap.isOpened():
@@ -276,8 +289,9 @@ def main() -> None:
 
         # --- Predykcja godziny ---
         if use_mlp:
-            # cechy robust
-            feats = robust_extractor(frame).astype(np.float32).reshape(1, -1)
+            # cechy robust (na downskalowanej klatce dla oszczędności CPU)
+            frame_small = cv2.resize(frame, (320, 180), interpolation=cv2.INTER_AREA)
+            feats = robust_extractor(frame_small).astype(np.float32).reshape(1, -1)
             # standaryzacja jak w treningu
             feats = (feats - mean) / (std + 1e-6)
 
@@ -294,8 +308,10 @@ def main() -> None:
             pred_hour = sincos_to_hour(y_sc)
             hour_float = float(pred_hour)
 
-            # „pewność” mapujemy do 0..1 i wygładzamy
-            raw_conf = max(0.0, min(1.0, norm))
+            # kalibracja pewności (sigmoida)
+            t = 0.9
+            k = 6.0
+            raw_conf = 1.0 / (1.0 + np.exp(-k * (norm - t)))
             if smoothed_conf is None:
                 smoothed_conf = raw_conf
             else:
@@ -304,6 +320,10 @@ def main() -> None:
         else:
             # fallback: RF na cechach advanced
             feats_adv = extract_advanced_features_from_bgr(frame).reshape(1, -1)
+            if expected_feats is not None and feats_adv.shape[1] != expected_feats:
+                raise RuntimeError(
+                    f"RF: niezgodna liczba cech ({feats_adv.shape[1]} != {expected_feats})"
+                )
             proba = rf_clf.predict_proba(feats_adv)[0]
             pred_class = int(np.argmax(proba))
             hour_float = float(pred_class)

@@ -28,6 +28,7 @@
 #   train_robust_time
 #   train_hour_regression_cyclic
 #   train_hour_nn_cyclic
+#   prepare_rpi_rf
 
 set -euo pipefail
 
@@ -149,5 +150,8 @@ run_step "train_hour_regression_cyclic" "${PY_CMD}" -m src.train_hour_regression
 
 # 14. Trening sieci MLP do regresji cyklicznej (torch, cechy robust)
 run_step "train_hour_nn_cyclic" "${PY_CMD}" -m src.train_hour_nn_cyclic
+
+# 15. Przygotowanie artefaktu RF dla RPi (kopiowanie do models/rpi)
+run_step "prepare_rpi_rf" bash -c "mkdir -p models/rpi && cp -f models/pc/baseline_advanced_rf_model.pkl models/rpi/baseline_advanced_rf_model.pkl"
 
 echo "[INFO] Pipeline zakończony. Logi: ${LOG_DIR}"

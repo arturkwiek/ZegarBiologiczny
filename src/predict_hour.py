@@ -26,7 +26,7 @@ import numpy as np
 from .utils import extract_rgb_hsv_stats
 
 
-MODELS_DIR = Path("models")
+MODELS_DIR = Path("models") / "pc"
 
 
 def load_model():

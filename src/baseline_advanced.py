@@ -51,7 +51,8 @@ def load_features():
     df = pd.read_csv(FEATURES_PATH)
     logging.info(f"Wczytano cechy rozszerzone: {df.shape}")
 
-    feature_cols = [
+    # Pełny zestaw cech (nowsza wersja może mieć dodatkowo h_mean, h_std)
+    all_feature_cols = [
         "r_mean",
         "g_mean",
         "b_mean",
@@ -64,7 +65,20 @@ def load_features():
         "v_mean",
     ]
 
-    X = df[feature_cols].to_numpy(dtype=np.float32)
+    # Dostosuj się do rzeczywistego nagłówka CSV (na starszych wersjach brak h_mean/h_std)
+    present_cols = [c for c in all_feature_cols if c in df.columns]
+    missing_cols = [c for c in all_feature_cols if c not in df.columns]
+    if missing_cols:
+        logging.warning(
+            "Brak kolumn %s w features_advanced.csv – trenowanie tylko na: %s",
+            missing_cols,
+            present_cols,
+        )
+
+    if not present_cols:
+        raise ValueError("Brak jakichkolwiek oczekiwanych kolumn cech w features_advanced.csv")
+
+    X = df[present_cols].to_numpy(dtype=np.float32)
     y = df["hour"].to_numpy(dtype=np.int64)
 
     return X, y
@@ -83,10 +97,12 @@ def build_models():
             ("scaler", StandardScaler()),
             (
                 "clf",
+                # multi_class="auto" bywa domyślne, ale w nowszych wersjach
+                # LogisticRegression nie zawsze przyjmuje ten parametr –
+                # usuwamy go dla kompatybilności wstecznej.
                 LogisticRegression(
                     max_iter=5000,
                     n_jobs=-1,
-                    multi_class="auto",
                 ),
             ),
         ]
@@ -100,10 +116,11 @@ def build_models():
         ]
     )
 
-    # 3) Random Forest - drzewa, skalowanie niepotrzebne
+    # 3) Random Forest - wersja odchudzona (mniejszy model, lepszy na RPi)
     models["rf"] = RandomForestClassifier(
-        n_estimators=200,
-        max_depth=None,
+        n_estimators=50,
+        max_depth=12,
+        min_samples_leaf=20,
         n_jobs=-1,
         random_state=42,
     )
@@ -144,7 +161,8 @@ def main() -> None:
     # 3. Trening i ocena każdego modelu
     import pickle
     from pathlib import Path
-    models_path = Path(__file__).resolve().parent.parent / "models"
+    # Modele bazowe zapisujemy domyślnie do katalogu PC
+    models_path = Path(__file__).resolve().parent.parent / "models" / "pc"
     models_path.mkdir(parents=True, exist_ok=True)
 
     for name, model in models.items():

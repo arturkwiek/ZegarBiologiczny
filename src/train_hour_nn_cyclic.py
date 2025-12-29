@@ -23,7 +23,7 @@ from torch.utils.data import Dataset, DataLoader
 
 
 FEATURES_PATH = Path("features_robust.csv")
-MODEL_OUT = Path("models")
+MODEL_OUT = Path("models") / "pc"
 MODEL_OUT.mkdir(parents=True, exist_ok=True)
 
 

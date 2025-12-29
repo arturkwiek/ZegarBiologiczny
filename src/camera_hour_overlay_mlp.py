@@ -40,7 +40,7 @@ except Exception:
     nn = None
 
 
-MODELS_DIR = Path("models")
+MODELS_DIR = Path("models") / "pc"
 MLP_CKPT = MODELS_DIR / "best_mlp_cyclic.pt"
 ADV_RF_PKL = MODELS_DIR / "baseline_advanced_rf_model.pkl"
 
@@ -66,28 +66,40 @@ def circular_err(pred_h: float, true_h: float) -> float:
 
 def extract_advanced_features_from_bgr(frame_bgr: np.ndarray) -> np.ndarray:
     """
-    Fallback: 10 cech jak w baseline_advanced:
-    r_mean,g_mean,b_mean,r_std,g_std,b_std,h_mean,h_std,s_mean,v_mean
+    Fallback: 8 cech zgodnych z features_advanced.csv używanym do treningu RF:
+    r_mean,g_mean,b_mean,r_std,g_std,b_std,s_mean,v_mean
     """
-    # BGR -> RGB
-    rgb = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB).astype(np.float32) / 255.0
-    r = rgb[:, :, 0].reshape(-1)
-    g = rgb[:, :, 1].reshape(-1)
-    b = rgb[:, :, 2].reshape(-1)
+    # BGR -> RGB (0..255, tak jak w extract_rgb_hsv_stats)
+    img_rgb = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB).astype(np.float32)
 
-    r_mean, g_mean, b_mean = float(r.mean()), float(g.mean()), float(b.mean())
-    r_std, g_std, b_std = float(r.std()), float(g.std()), float(b.std())
+    r = img_rgb[:, :, 0]
+    g = img_rgb[:, :, 1]
+    b = img_rgb[:, :, 2]
 
-    hsv = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2HSV).astype(np.float32)
-    # OpenCV H: [0..179], S,V: [0..255]
-    h = (hsv[:, :, 0].reshape(-1) / 179.0)
-    s = (hsv[:, :, 1].reshape(-1) / 255.0)
-    v = (hsv[:, :, 2].reshape(-1) / 255.0)
+    r_mean, g_mean, b_mean = r.mean(), g.mean(), b.mean()
+    r_std, g_std, b_std = r.std(), g.std(), b.std()
 
-    h_mean, h_std = float(h.mean()), float(h.std())
-    s_mean, v_mean = float(s.mean()), float(v.mean())
+    # RGB -> HSV (OpenCV: H in [0,179], S,V in [0,255]) – jak w utils.extract_rgb_hsv_stats
+    img_hsv = cv2.cvtColor(img_rgb.astype(np.uint8), cv2.COLOR_RGB2HSV)
+    s = img_hsv[:, :, 1].astype(np.float32)
+    v = img_hsv[:, :, 2].astype(np.float32)
 
-    feats = np.array([r_mean, g_mean, b_mean, r_std, g_std, b_std, h_mean, h_std, s_mean, v_mean], dtype=np.float32)
+    s_mean = s.mean()
+    v_mean = v.mean()
+
+    feats = np.array(
+        [
+            float(r_mean),
+            float(g_mean),
+            float(b_mean),
+            float(r_std),
+            float(g_std),
+            float(b_std),
+            float(s_mean),
+            float(v_mean),
+        ],
+        dtype=np.float32,
+    )
     return feats
 
 
