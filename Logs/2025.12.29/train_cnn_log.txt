@@ -1,0 +1,26 @@
+(.venv) vision@Vision-DellLaPrv:/mnt/c/Users/Dell/Desktop/Workplace/Repositories/ZegarBiologiczny$ python3 -m src.train_hour_cnn --epochs 10 --batch-size 64 --img-size 224
+[INFO] Używane urządzenie: cuda
+[INFO] Wczytuję etykiety z: dataset/2025/labels.csv
+[INFO] Katalog z danymi: dataset/2025
+[INFO] Liczba rekordów w labels.csv: 471095
+[INFO] Podział: train=423986, val=47109
+[EPOCH 001] train_loss=1.7327 train_acc=0.355 val_loss=1.3163 val_acc=0.516
+[INFO] Nowy najlepszy model (val_loss=1.3163)
+[EPOCH 002] train_loss=1.1976 train_acc=0.549 val_loss=1.0464 val_acc=0.609
+[INFO] Nowy najlepszy model (val_loss=1.0464)
+[EPOCH 003] train_loss=1.0236 train_acc=0.611 val_loss=0.9688 val_acc=0.628
+[INFO] Nowy najlepszy model (val_loss=0.9688)
+[EPOCH 004] train_loss=0.9436 train_acc=0.638 val_loss=0.9390 val_acc=0.652
+[INFO] Nowy najlepszy model (val_loss=0.9390)
+[EPOCH 005] train_loss=0.8802 train_acc=0.658 val_loss=0.9242 val_acc=0.633
+[INFO] Nowy najlepszy model (val_loss=0.9242)
+[EPOCH 006] train_loss=0.8283 train_acc=0.675 val_loss=0.7939 val_acc=0.684
+[INFO] Nowy najlepszy model (val_loss=0.7939)
+[EPOCH 007] train_loss=0.7922 train_acc=0.687 val_loss=0.7631 val_acc=0.697
+[INFO] Nowy najlepszy model (val_loss=0.7631)
+[EPOCH 008] train_loss=0.7627 train_acc=0.697 val_loss=0.8103 val_acc=0.686
+[EPOCH 009] train_loss=0.7377 train_acc=0.706 val_loss=0.7001 val_acc=0.718
+[INFO] Nowy najlepszy model (val_loss=0.7001)
+[EPOCH 010] train_loss=0.7173 train_acc=0.713 val_loss=0.7211 val_acc=0.707
+[INFO] Zapisano model CNN do: /mnt/c/Users/Dell/Desktop/Workplace/Repositories/ZegarBiologiczny/models/pc/best_cnn_hour.pt
+(.venv) vision@Vision-DellLaPrv:/mnt/c/Users/Dell/Desktop/Workplace/Repositories/ZegarBiologiczny$
