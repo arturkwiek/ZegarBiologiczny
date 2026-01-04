@@ -21,7 +21,9 @@
 from __future__ import annotations
 
 import argparse
+import datetime
 import math
+import os
 import pickle
 from pathlib import Path
 from typing import Callable, Optional, Tuple
@@ -208,6 +210,20 @@ def main() -> None:
     ap.add_argument("--fps", type=int, default=30)
     ap.add_argument("--every", type=int, default=2, help="Predykcja co N klatek (dla stabilności/CPU).")
     ap.add_argument("--use_fallback", action="store_true", help="Wymuś fallback advanced RF.")
+    ap.add_argument(
+        "--log-csv",
+        dest="log_csv",
+        type=str,
+        default="",
+        help="Ścieżka do pliku CSV z logiem predykcji (pusty lub brak = <nazwa_skryptu>_log.txt)",
+    )
+    # alias dla wstecznej kompatybilności
+    ap.add_argument(
+        "--log_csv",
+        dest="log_csv",
+        type=str,
+        help=argparse.SUPPRESS,
+    )
     args = ap.parse_args()
 
     # --- Wybór trybu ---
@@ -243,6 +259,23 @@ def main() -> None:
     last_conf = None
     frame_idx = 0
 
+    # konfiguracja logowania do CSV
+    raw_log = (getattr(args, "log_csv", "") or "").strip()
+    if not raw_log:
+        log_path = f"{Path(__file__).stem}_log.txt"
+    else:
+        log_path = os.path.expanduser(raw_log)
+
+    log_header_written = False
+    log_dir = os.path.dirname(log_path)
+    if log_dir:
+        os.makedirs(log_dir, exist_ok=True)
+    try:
+        if os.path.exists(log_path) and os.path.getsize(log_path) > 0:
+            log_header_written = True
+    except OSError:
+        pass
+
     while True:
         ok, frame = cap.read()
         if not ok:
@@ -251,6 +284,13 @@ def main() -> None:
         frame_idx += 1
 
         if frame_idx % max(1, args.every) == 0:
+            now_dt = datetime.datetime.now()
+            true_hour = (
+                now_dt.hour
+                + now_dt.minute / 60.0
+                + now_dt.second / 3600.0
+                + now_dt.microsecond / 3_600_000_000.0
+            )
             if use_mlp:
                 # 1) cechy robust
                 feats = robust_extractor(frame).astype(np.float32).reshape(1, -1)
@@ -274,6 +314,28 @@ def main() -> None:
                 pred_hour = int(np.argmax(proba))
                 last_pred_hour = float(pred_hour)
                 last_conf = float(np.max(proba))
+
+            # Logowanie do CSV (timestamp, rzeczywista godzina, predykcja, pewność, model)
+            if log_path is not None and last_pred_hour is not None:
+                ts_str = now_dt.isoformat()
+                pred_val = float(last_pred_hour)
+                conf_val = "" if last_conf is None else f"{float(last_conf):.4f}"
+                try:
+                    with open(log_path, "a", encoding="utf-8") as f:
+                        if not log_header_written:
+                            f.write(
+                                "timestamp_iso;true_hour;pred_hour;pred_label;confidence;model_name\n"
+                            )
+                            log_header_written = True
+                        hh = int(pred_val) % 24
+                        mm = int(round((pred_val - hh) * 60.0)) % 60
+                        pred_label = f"{hh:02d}:{mm:02d}"
+                        f.write(
+                            f"{ts_str};{true_hour:.4f};{pred_val:.4f};"
+                            f"{pred_label};{conf_val};{mode_name}\n"
+                        )
+                except Exception as e:
+                    print(f"[WARN] Nie udało się dopisać do loga {log_path}: {e}")
 
         # --- overlay ---
         lines = [f"Mode: {mode_name}"]

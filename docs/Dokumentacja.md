@@ -123,6 +123,14 @@ Modele regresji cyklicznej:
 	- normalizacja cech liczona tylko na train, identyczna transformacja stosowana do val/test,
 	- zapisywany jest najlepszy checkpoint `models/best_mlp_cyclic.pt` według walidacyjnego Cyclic MAE.
 
+Modele CNN na pełnym obrazie:
+
+- `src/train_hour_cnn.py`
+	- konwolucyjna sieć neuronowa w PyTorch uczona bezpośrednio na obrazach (bez ręcznego feature engineeringu),
+	- wejście: obraz RGB przeskalowany do zadanej rozdzielczości kwadratowej (np. 224×224),
+	- wyjście: klasy godzin 0..23 lub ich rozkład prawdopodobieństwa,
+	- zapis checkpointu (stan modelu oraz metadane, m.in. `num_classes`, `img_size`) do pliku `models/rpi/best_cnn_hour.pt`.
+
 Wytrenowane modele klasyczne zapisywane są jako pliki `.pkl` w katalogu `models/`,
 natomiast model MLP jako plik `.pt` (stan sieci oraz parametry normalizacji).
 
@@ -145,6 +153,11 @@ Główne skrypty:
 	- integracja z OpenCV i/lub Raspberry Pi,
 	- pobranie klatki z kamery, predykcja godziny **aktualnym modelem produkcyjnym** (np. `best_mlp_cyclic.pt`),
 	- naniesienie opisu (overlay) i zapis / wyświetlenie w pętli.
+
+- `src/camera_hour_overlay_mlp.py`, `src/camera_hour_overlay_mlp_rpi.py`
+	- warianty overlay oparte o regresję cykliczną MLP na cechach robust oraz tryb fallback (RandomForest na cechach advanced),
+	- wersja RPi obsługuje dodatkowo model CNN trenowany na pełnym obrazie (`best_cnn_hour.pt`, przełącznik `--use_cnn`),
+	- skrypty zapisują klatki z nałożoną godziną do pliku JPG oraz opcjonalny log CSV z predykcjami.
 
 Powyższe skrypty pełnią rolę **warstwy implementacyjnej oraz narzędzia do weryfikacji jakości modelu w czasie rzeczywistym**:
 umożliwiają wizualną ocenę predykcji (porównanie przewidywanej godziny z rzeczywistą)

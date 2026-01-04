@@ -32,6 +32,52 @@ Ten plik podsumowuje dostępne modele w katalogu `models/` oraz proponuje konwen
   - Typ: MLP (regresja cykliczna sin/cos) na cechach ROBUST  
   - Przeznaczenie: główny model używany w skryptach MLP (`train_hour_nn_cyclic*.py`, `camera_hour_overlay_mlp*.py`)  
 
+- `best_cnn_hour.pt`  
+  - Typ: CNN (klasyfikacja 24 klas godzinowych 0–23) na pełnych obrazach RGB  
+  - Przeznaczenie: eksperymentalny model „end-to-end” na obrazach (PC), wykorzystywany do testów i trybu CNN w skryptach overlay na RPi  
+  - Trening (PC): `python -m src.train_hour_cnn`  
+
+## 1.1. Mapowanie: trening → plik modelu → target
+
+- PC (modele trenowane i używane na PC):  
+  - Skrypt treningowy: `src/baseline_rgb.py`  
+    - Dane: `features_mean_rgb.csv`  
+    - Model: `models/pc/baseline_rgb_model.pkl`  
+    - Główne skrypty wykorzystujące:  
+      - `src/camera_hour_overlay.py` (tryb mean RGB, przez parametr `--model`)  
+      - `src/camera_hour_overlay_rpi.py` (gdy podasz ten plik jako `--model`, ale to raczej PC‑owy model).  
+
+  - Skrypt treningowy: `src/baseline_advanced.py`  
+    - Dane: `features_advanced.csv`  
+    - Modele: `models/pc/baseline_advanced_*_model.pkl` (LogReg/RF/GB/KNN)  
+    - Główne skrypty wykorzystujące (PC/RPi):  
+      - PC: `src/camera_hour_overlay_advanced.py` (parametr `--model` + `--features_csv`)  
+      - RPi fallback: `src/camera_hour_overlay_mlp_rpi.py` (tryb „RF classify (advanced) [fallback]”, plik kopiowany do `models/rpi/`).  
+
+  - Skrypt treningowy: `src/train_hour_nn_cyclic.py` / `src/train_hour_nn_cyclic_2.py`  
+    - Dane: `features_robust.csv`  
+    - Model główny: `models/pc/best_mlp_cyclic.pt`  
+    - Główne skrypty wykorzystujące:  
+      - PC: `src/camera_hour_overlay_mlp.py`  
+      - RPi: `src/camera_hour_overlay_mlp_rpi.py` (model kopiowany do `models/rpi/best_mlp_cyclic.pt`)  
+
+  - Skrypt treningowy: `src/train_hour_cnn.py`  
+    - Dane: pełne obrazy z `labels.csv` (kolumny `filepath`, `hour`, `datetime`)  
+    - Model: `models/pc/best_cnn_hour.pt`  
+    - Główne skrypty wykorzystujące:  
+      - RPi: `src/camera_hour_overlay_mlp_rpi.py` w trybie `--use_cnn` (oczekuje kopii modelu w `models/rpi/best_cnn_hour.pt`)  
+      - (opcjonalnie) przyszły skrypt overlay na PC dla CNN (obecnie brak dedykowanego).  
+
+- RPi (modele zoptymalizowane / skopiowane na Raspberry Pi):  
+  - `models/rpi/best_mlp_cyclic.pt`  
+    - Kopia / wariant `best_mlp_cyclic.pt` z PC  
+    - Używany przez: `src/camera_hour_overlay_mlp_rpi.py` (domyślny tryb MLP cyclic).  
+  - `models/rpi/baseline_advanced_rf_model.pkl`  
+    - Lżejszy RF na cechach advanced  
+    - Używany przez: `src/camera_hour_overlay_mlp_rpi.py` w trybie `--use_fallback`.  
+  - `models/rpi/best_cnn_hour.pt`  
+    - Kopia `models/pc/best_cnn_hour.pt` przygotowana pod tryb `--use_cnn` w `src/camera_hour_overlay_mlp_rpi.py`.  
+
 ## 2. Proponowana konwencja nazewnictwa
 
 Na potrzeby kolejnych wersji modeli warto stosować schemat:

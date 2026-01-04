@@ -22,6 +22,7 @@
 from __future__ import annotations
 
 import argparse
+import math
 import datetime
 import os
 import time
@@ -38,25 +39,55 @@ from .camera_hour_overlay_mlp import (
     load_mlp_checkpoint,
     sincos_to_hour,
 )
+from .train_hour_cnn import SmallHourCNN
 
 MODELS_DIR = Path("models") / "rpi"
 MLP_CKPT = MODELS_DIR / "best_mlp_cyclic.pt"
 ADV_RF_PKL = MODELS_DIR / "baseline_advanced_rf_model.pkl"
 CNN_CKPT = MODELS_DIR / "best_cnn_hour.pt"
 
+# Stałe filtra czasu na kole 24h
+MAX_RATE_H_PER_SEC = 0.000333  # maks. szybkość zmiany estymaty [h/s], np. ~0.02 h/min
+MAX_DT_SEC = 10.0  # zabezpieczenie na długie przerwy między pomiarami
+ALPHA_MIN = 0.01
+ALPHA_MAX = 0.12
+CONF_FLOOR = 0.5
+ANOMALY_H = 2.0
+ANOMALY_COUNT_THRESHOLD = 3
+
+
+def wrap24(h: float) -> float:
+    """Zawijanie godziny na przedział [0, 24) (czas cykliczny)."""
+    return float(h % 24.0)
+
+
+def cyclic_delta(pred: float, state: float) -> float:
+    """Najmniejsza różnica pred-state na okręgu 24h w zakresie [-12, 12]."""
+    diff = (pred - state + 12.0) % 24.0 - 12.0
+    return float(diff)
+
+
+def format_hour_hhmm(h: float) -> str:
+    """Formatuje godzinę float jako HH:MM na kole 24h."""
+    h_wrapped = wrap24(h)
+    hh = int(h_wrapped) % 24
+    mm = int(round((h_wrapped - hh) * 60.0)) % 60
+    return f"{hh:02d}:{mm:02d}"
+
 import pickle
 
 
 def draw_overlay(
     frame: np.ndarray,
-    text: str,
+    text_raw: str,
+    text_filt: str,
     mode_name: str,
     confidence: float | None,
     fps: float | None,
 ) -> np.ndarray:
     """Rysuje panel informacyjny u góry obrazu (styl jak w camera_hour_overlay_rpi)."""
     h, w = frame.shape[:2]
-    panel_h = 130
+    panel_h = 160
 
     overlay = frame.copy()
     cv2.rectangle(overlay, (0, 0), (w, panel_h), (0, 0, 0), -1)
@@ -66,16 +97,17 @@ def draw_overlay(
     now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     # Wspólne wiersze tekstu w panelu
-    y_hour = 36
-    y_date = 64
-    y_mode = 92
-    y_conf = 120
+    y_filt = 36
+    y_raw = 64
+    y_date = 92
+    y_mode = 120
+    y_conf = 148
 
-    # Główna linia z godziną (wiersz 1)
+    # Filtrowana godzina (wiersz 1)
     cv2.putText(
         frame,
-        text,
-        (20 + 2, y_hour + 2),
+        text_filt,
+        (20 + 2, y_filt + 2),
         cv2.FONT_HERSHEY_SIMPLEX,
         1.0,
         (0, 0, 0),
@@ -84,8 +116,8 @@ def draw_overlay(
     )
     cv2.putText(
         frame,
-        text,
-        (20, y_hour),
+        text_filt,
+        (20, y_filt),
         cv2.FONT_HERSHEY_SIMPLEX,
         1.0,
         (255, 255, 255),
@@ -93,7 +125,29 @@ def draw_overlay(
         cv2.LINE_AA,
     )
 
-    # Data/czas (wiersz 2, wyrównany do prawej)
+    # Surowa godzina (wiersz 2)
+    cv2.putText(
+        frame,
+        text_raw,
+        (20 + 2, y_raw + 2),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.9,
+        (0, 0, 0),
+        3,
+        cv2.LINE_AA,
+    )
+    cv2.putText(
+        frame,
+        text_raw,
+        (20, y_raw),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.9,
+        (255, 255, 255),
+        2,
+        cv2.LINE_AA,
+    )
+
+    # Data/czas (wiersz 3, wyrównany do prawej)
     (text_w, _), _ = cv2.getTextSize(now_str, cv2.FONT_HERSHEY_SIMPLEX, 0.8, 2)
     date_x = max(20, w - text_w - 20)
     date_y = y_date
@@ -118,7 +172,7 @@ def draw_overlay(
         cv2.LINE_AA,
     )
 
-    # Tryb/model (wiersz 3)
+    # Tryb/model (wiersz 4)
     mode_text = f"Model: {mode_name}"
     cv2.putText(
         frame,
@@ -141,7 +195,7 @@ def draw_overlay(
         cv2.LINE_AA,
     )
 
-    # Pasek pewności (0..1)
+    # Pasek pewności (0..1) (wiersz 5)
     if confidence is not None:
         conf_clamped = max(0.0, min(1.0, float(confidence)))
         conf_text = f"pewnosc: {conf_clamped * 100:5.1f}%"
@@ -213,6 +267,20 @@ def main() -> None:
         help="Ścieżka do pliku wyjściowego JPG",
     )
     ap.add_argument(
+        "--log-csv",
+        dest="log_csv",
+        type=str,
+        default="",
+        help="Ścieżka do pliku CSV z logiem predykcji (pusty lub brak = <nazwa_skryptu>_log.txt)",
+    )
+    # alias dla wstecznej kompatybilności
+    ap.add_argument(
+        "--log_csv",
+        dest="log_csv",
+        type=str,
+        help=argparse.SUPPRESS,
+    )
+    ap.add_argument(
         "--smooth",
         type=float,
         default=0.6,
@@ -241,6 +309,7 @@ def main() -> None:
     rf_clf = None
     cnn_model = None
     expected_feats: Optional[int] = None
+    cnn_img_size: int = 224
 
     if use_cnn:
         import torch
@@ -250,8 +319,35 @@ def main() -> None:
                 f"Nie znaleziono pliku {CNN_CKPT}. "
                 "Uruchom: python -m src.train_hour_cnn (żeby zapisać best_cnn_hour.pt)."
             )
-        cnn_model = torch.load(CNN_CKPT, map_location="cpu")
+
+        ckpt = torch.load(CNN_CKPT, map_location="cpu")
+
+        # Obsługa zarówno zapisu pełnego modelu (torch.save(model))
+        # jak i zapisu słownika z 'model_state' (obecny train_hour_cnn).
+        if hasattr(ckpt, "eval") and hasattr(ckpt, "state_dict") and not isinstance(ckpt, dict):
+            # Zapisano cały obiekt modelu
+            cnn_model = ckpt
+            # Spróbuj wydedukować liczbę klas z ostatniej warstwy liniowej
+            last_linear = getattr(getattr(cnn_model, "classifier", None), "[-1]", None)
+            num_classes = getattr(last_linear, "out_features", 24) if last_linear is not None else 24
+            cnn_img_size = 224  # brak metadanych w tym trybie
+        else:
+            # Zapisano słownik (np. {"model_state": ..., "num_classes": ...})
+            if isinstance(ckpt, dict):
+                state_dict = ckpt.get("model_state", ckpt)
+                num_classes = int(ckpt.get("num_classes", 24))
+                cnn_img_size = int(ckpt.get("img_size", 224))
+            else:
+                # Ostatnia linia obrony: potraktuj jako state_dict bez metadanych
+                state_dict = ckpt
+                num_classes = 24
+                cnn_img_size = 224
+
+            cnn_model = SmallHourCNN(num_classes=num_classes)
+            cnn_model.load_state_dict(state_dict)
+
         cnn_model.eval()
+
         mean = std = None
         mode_name = "CNN (full frame)"
         print(f"[INFO] Załadowano CNN z {CNN_CKPT}")
@@ -293,6 +389,32 @@ def main() -> None:
     output_path = os.path.expanduser(args.output)
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
+    raw_log = (getattr(args, "log_csv", "") or "").strip()
+    if not raw_log:
+        log_path = f"{Path(__file__).stem}_log.txt"
+    else:
+        log_path = os.path.expanduser(raw_log)
+
+    log_dir = os.path.dirname(log_path)
+    if log_dir:
+        os.makedirs(log_dir, exist_ok=True)
+
+    # Stan filtra czasu
+    state_hour: Optional[float] = None
+    anomaly_count: int = 0
+    last_state_ts: Optional[float] = None
+    raw_delta: float = 0.0
+    dt_sec: float = 0.0
+
+    # Stan nagłówka logu CSV
+    log_header_written = False
+    if os.path.exists(log_path):
+        try:
+            if os.path.getsize(log_path) > 0:
+                log_header_written = True
+        except OSError:
+            pass
+
     while True:
         ok, frame = cap.read()
         if not ok:
@@ -312,11 +434,14 @@ def main() -> None:
         if use_cnn:
             # pełny obraz przez CNN (klasy 0..23)
             import torch
+            device = next(cnn_model.parameters()).device if hasattr(cnn_model, "parameters") else torch.device("cpu")
 
-            frame_small = cv2.resize(frame, (224, 224), interpolation=cv2.INTER_AREA)
+            frame_small = cv2.resize(
+                frame, (cnn_img_size, cnn_img_size), interpolation=cv2.INTER_AREA
+            )
             img_rgb = cv2.cvtColor(frame_small, cv2.COLOR_BGR2RGB).astype(np.float32) / 255.0
             img_chw = np.transpose(img_rgb, (2, 0, 1))
-            x = torch.from_numpy(img_chw).unsqueeze(0)
+            x = torch.from_numpy(img_chw).unsqueeze(0).to(device=device, dtype=torch.float32)
 
             with torch.no_grad():
                 logits = cnn_model(x)
@@ -372,20 +497,80 @@ def main() -> None:
             pred_class = int(np.argmax(proba))
             hour_float = float(pred_class)
 
-            raw_conf = float(np.max(proba))
+            raw_conf = float(np.max(prob))
             if smoothed_conf is None:
                 smoothed_conf = raw_conf
             else:
                 smoothed_conf = smooth * smoothed_conf + (1.0 - smooth) * raw_conf
             conf_to_show = smoothed_conf
 
-        hh = int(hour_float) % 24
-        mm = int(round((hour_float - hh) * 60.0)) % 60
-        text = f"Godzina (pred): {hh:02d}:{mm:02d}"
+        # --- Filtracja predykcji na kole 24h ---
+        now_ts = time.perf_counter()
+        if last_state_ts is None:
+            dt_sec = 0.0
+        else:
+            dt_sec = max(0.0, now_ts - last_state_ts)
+        last_state_ts = now_ts
 
-        frame_out = draw_overlay(frame, text, mode_name, conf_to_show, fps)
+        if state_hour is None:
+            state_hour = wrap24(hour_float)
+            raw_delta = 0.0
+            anomaly_count = 0
+        else:
+            raw_delta = cyclic_delta(hour_float, state_hour)
+            is_anomaly = abs(raw_delta) > ANOMALY_H
+            if is_anomaly:
+                anomaly_count += 1
+            else:
+                anomaly_count = 0
+
+            allow_update = (not is_anomaly) or (anomaly_count >= ANOMALY_COUNT_THRESHOLD)
+            if allow_update:
+                dt_eff = min(dt_sec, MAX_DT_SEC)
+                max_jump_h = MAX_RATE_H_PER_SEC * dt_eff
+
+                conf_for_alpha = max(0.0, min(1.0, float(raw_conf)))
+                alpha = ALPHA_MIN + (ALPHA_MAX - ALPHA_MIN) * conf_for_alpha
+                if conf_for_alpha < CONF_FLOOR:
+                    alpha = ALPHA_MIN
+
+                # Ograniczenie skoku na kole 24h
+                delta = max(-max_jump_h, min(max_jump_h, raw_delta))
+                state_hour = wrap24(state_hour + alpha * delta)
+
+                if is_anomaly:
+                    anomaly_count = 0
+
+        if state_hour is None:
+            # Bezpiecznik: nie powinno się zdarzyć, ale dla pewności.
+            state_hour = wrap24(hour_float)
+            raw_delta = 0.0
+
+        text_raw = f"Godzina (raw): {format_hour_hhmm(hour_float)}"
+        text_filt = f"Godzina (filt): {format_hour_hhmm(state_hour)}"
+
+        frame_out = draw_overlay(frame, text_raw, text_filt, mode_name, conf_to_show, fps)
         cv2.imwrite(output_path, frame_out)
-        print(f"[INFO] Zapisano obraz do {output_path} z predykcją {hh:02d}:{mm:02d} ({mode_name})")
+        print(f"[INFO] Zapisano obraz do {output_path} z predykcjami RAW/FILT: {text_raw} / {text_filt} ({mode_name})")
+
+        if log_path is not None:
+            now_dt = datetime.datetime.now()
+            ts_str = now_dt.isoformat()
+            conf_val = "" if raw_conf is None else f"{float(raw_conf):.4f}"
+            dt_val = f"{dt_sec:.3f}"
+            try:
+                with open(log_path, "a", encoding="utf-8") as f:
+                    if not log_header_written:
+                        f.write(
+                            "timestamp_iso;pred_float;state_hour;raw_delta;confidence;dt_sec;model_name\n"
+                        )
+                        log_header_written = True
+                    f.write(
+                        f"{ts_str};{hour_float:.4f};{state_hour:.4f};"
+                        f"{raw_delta:.4f};{conf_val};{dt_val};{mode_name}\n"
+                    )
+            except Exception as e:
+                print(f"[WARN] Nie udało się dopisać do loga {log_path}: {e}")
 
         time.sleep(args.interval)
 

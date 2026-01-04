@@ -114,6 +114,20 @@ def main():
     ap.add_argument("--smooth", type=float, default=0.6, help="Wygładzanie pewności 0..1 (większe = mocniej wygładza)")
     ap.add_argument("--interval", type=float, default=2.0, help="Czas w sekundach między zdjęciami")
     ap.add_argument("--output", type=str, default="~/www/camera_hour.jpg", help="Ścieżka do pliku wyjściowego JPG")
+    ap.add_argument(
+        "--log-csv",
+        dest="log_csv",
+        type=str,
+        default="",
+        help="Ścieżka do pliku CSV z logiem predykcji (pusty lub brak = <nazwa_skryptu>_log.txt)",
+    )
+    # alias dla wstecznej kompatybilności
+    ap.add_argument(
+        "--log_csv",
+        dest="log_csv",
+        type=str,
+        help=argparse.SUPPRESS,
+    )
     args = ap.parse_args()
 
     model_path = Path(args.model)
@@ -142,6 +156,23 @@ def main():
 
     output_path = os.path.expanduser(args.output)
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
+
+    # konfiguracja logowania do CSV
+    raw_log = (getattr(args, "log_csv", "") or "").strip()
+    if not raw_log:
+        log_path = f"{Path(__file__).stem}_log.txt"
+    else:
+        log_path = os.path.expanduser(raw_log)
+
+    log_header_written = False
+    log_dir = os.path.dirname(log_path)
+    if log_dir:
+        os.makedirs(log_dir, exist_ok=True)
+    try:
+        if os.path.exists(log_path) and os.path.getsize(log_path) > 0:
+            log_header_written = True
+    except OSError:
+        pass
 
     while True:
         ok, frame = cap.read()
@@ -173,6 +204,36 @@ def main():
         frame_out = draw_overlay(frame, text, confidence_to_show, fps)
         cv2.imwrite(output_path, frame_out)
         print(f"Zapisano obraz do {output_path} z predykcją {label}")
+
+        # Logowanie do CSV (timestamp, rzeczywista godzina, predykcja, pewność, model)
+        if log_path is not None:
+            now_dt = datetime.datetime.now()
+            ts_str = now_dt.isoformat()
+            true_hour = (
+                now_dt.hour
+                + now_dt.minute / 60.0
+                + now_dt.second / 3600.0
+                + now_dt.microsecond / 3_600_000_000.0
+            )
+            try:
+                pred_hour = float(pred)
+            except Exception:
+                pred_hour = float(int(pred))
+            conf_val = "" if confidence is None else f"{float(confidence):.4f}"
+            model_name = type(model).__name__
+            try:
+                with open(log_path, "a", encoding="utf-8") as f:
+                    if not log_header_written:
+                        f.write(
+                            "timestamp_iso;true_hour;pred_hour;pred_label;confidence;model_name\n"
+                        )
+                        log_header_written = True
+                    f.write(
+                        f"{ts_str};{true_hour:.4f};{pred_hour:.4f};"
+                        f"{label};{conf_val};{model_name}\n"
+                    )
+            except Exception as e:
+                print(f"[WARN] Nie udało się dopisać do loga {log_path}: {e}")
         time.sleep(args.interval)
 
     cap.release()

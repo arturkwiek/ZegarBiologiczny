@@ -13,6 +13,7 @@
 from __future__ import annotations
 
 import argparse
+import time
 from pathlib import Path
 
 import cv2
@@ -156,6 +157,7 @@ def eval_one_epoch(
 
 
 def main() -> None:
+    t0 = time.time()
     parser = argparse.ArgumentParser()
     parser.add_argument("--epochs", type=int, default=10)
     parser.add_argument("--batch-size", type=int, default=64)
@@ -209,6 +211,7 @@ def main() -> None:
     best_state = None
 
     for epoch in range(1, args.epochs + 1):
+        t_epoch_start = time.time()
         train_loss, train_acc = train_one_epoch(
             model, train_loader, criterion, optimizer, device, epoch, args.epochs
         )
@@ -216,10 +219,13 @@ def main() -> None:
             model, val_loader, criterion, device, epoch, args.epochs
         )
 
+        epoch_time = time.time() - t_epoch_start
+
         print(
             f"[EPOCH {epoch:03d}] "
             f"train_loss={train_loss:.4f} train_acc={train_acc:.3f} "
-            f"val_loss={val_loss:.4f} val_acc={val_acc:.3f}"
+            f"val_loss={val_loss:.4f} val_acc={val_acc:.3f} "
+            f"time={epoch_time:.1f}s"
         )
 
         if val_loss < best_val_loss:
@@ -227,7 +233,7 @@ def main() -> None:
             best_state = model.state_dict()
             print(f"[INFO] Nowy najlepszy model (val_loss={val_loss:.4f})")
 
-    # 5) Zapis najlepszego modelu
+    # 5) Zapis najlepszego modelu (state_dict + metadane, bez picklowania całego obiektu)
     models_dir = Path(__file__).resolve().parent.parent / "models" / "pc"
     models_dir.mkdir(parents=True, exist_ok=True)
     ckpt_path = models_dir / "best_cnn_hour.pt"
@@ -235,8 +241,15 @@ def main() -> None:
     if best_state is not None:
         model.load_state_dict(best_state)
 
-    torch.save(model, ckpt_path)
+    ckpt = {
+        "model_state": model.state_dict(),
+        "num_classes": 24,
+        "img_size": args.img_size,
+    }
+    torch.save(ckpt, ckpt_path)
     print(f"[INFO] Zapisano model CNN do: {ckpt_path}")
+    total_time = time.time() - t0
+    print(f"[INFO] Całkowity czas trenowania: {total_time:.2f}s")
 
 
 if __name__ == "__main__":

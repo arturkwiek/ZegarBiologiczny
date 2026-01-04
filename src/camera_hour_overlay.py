@@ -17,6 +17,7 @@
 #     5. Rysowanie overlay (draw_overlay) i obsługa klawisza wyjścia (q / ESC)
 
 import argparse
+import os
 import pickle
 from pathlib import Path
 import cv2
@@ -195,6 +196,20 @@ def main():
     ap.add_argument("--width", type=int, default=1280)
     ap.add_argument("--height", type=int, default=720)
     ap.add_argument("--smooth", type=float, default=0.6, help="Wygładzanie pewności 0..1 (większe = mocniej wygładza)")
+    ap.add_argument(
+        "--log-csv",
+        dest="log_csv",
+        type=str,
+        default="",
+        help="Ścieżka do pliku CSV z logiem predykcji (pusty lub brak = <nazwa_skryptu>_log.txt)",
+    )
+    # alias dla wstecznej kompatybilności
+    ap.add_argument(
+        "--log_csv",
+        dest="log_csv",
+        type=str,
+        help=argparse.SUPPRESS,
+    )
     args = ap.parse_args()
 
     model_path = Path(args.model)
@@ -203,6 +218,7 @@ def main():
 
     model = load_model(model_path)
     n_features = get_expected_n_features(model)
+    model_name = type(model).__name__
 
     # Wspieramy "mean RGB" (3 cechy). Jeśli model oczekuje czegoś innego, przerwiemy z jasnym komunikatem.
     if n_features is not None and n_features != 3:
@@ -226,6 +242,23 @@ def main():
     smooth = float(args.smooth)
     smooth = max(0.0, min(0.99, smooth))
     smoothed_conf = None
+
+    # konfiguracja logowania do CSV
+    raw_log = (getattr(args, "log_csv", "") or "").strip()
+    if not raw_log:
+        log_path = f"{Path(__file__).stem}_log.txt"
+    else:
+        log_path = os.path.expanduser(raw_log)
+
+    log_header_written = False
+    log_dir = os.path.dirname(log_path)
+    if log_dir:
+        os.makedirs(log_dir, exist_ok=True)
+    try:
+        if os.path.exists(log_path) and os.path.getsize(log_path) > 0:
+            log_header_written = True
+    except OSError:
+        pass
 
     window = "USB camera -> predicted hour (q to quit)"
     cv2.namedWindow(window, cv2.WINDOW_NORMAL)
@@ -261,6 +294,35 @@ def main():
             confidence_to_show = smoothed_conf
         else:
             confidence_to_show = None
+
+        # Logowanie do CSV (timestamp, rzeczywista godzina, predykcja, pewność, model)
+        if log_path is not None:
+            now_dt = datetime.datetime.now()
+            ts_str = now_dt.isoformat()
+            true_hour = (
+                now_dt.hour
+                + now_dt.minute / 60.0
+                + now_dt.second / 3600.0
+                + now_dt.microsecond / 3_600_000_000.0
+            )
+            try:
+                pred_hour = float(pred)
+            except Exception:
+                pred_hour = float(int(pred))
+            conf_val = "" if confidence is None else f"{float(confidence):.4f}"
+            try:
+                with open(log_path, "a", encoding="utf-8") as f:
+                    if not log_header_written:
+                        f.write(
+                            "timestamp_iso;true_hour;pred_hour;pred_label;confidence;model_name\n"
+                        )
+                        log_header_written = True
+                    f.write(
+                        f"{ts_str};{true_hour:.4f};{pred_hour:.4f};"
+                        f"{label};{conf_val};{model_name}\n"
+                    )
+            except Exception as e:
+                print(f"[WARN] Nie udało się dopisać do loga {log_path}: {e}")
 
         text = f"Godzina: {label}"
         frame_out = draw_overlay(frame, text, confidence_to_show, fps)
