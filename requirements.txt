@@ -8,3 +8,5 @@ tqdm>=4.64
 jupyterlab>=4.0
 ipykernel>=6.0
 pathlib>=1.0
+joblib>=1.2
+torch>=2.0
