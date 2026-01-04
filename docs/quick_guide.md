@@ -147,6 +147,10 @@ python -m src.predict_hour --image path/to/image.jpg
 
 ```bash
 python -m src.camera_hour_overlay --cam 0 --width 1280 --height 720
+# z logowaniem predykcji do domyślnego pliku camera_hour_overlay_log.txt
+python -m src.camera_hour_overlay --cam 0 --log-csv ""
+# własna ścieżka do logu
+python -m src.camera_hour_overlay --cam 0 --log-csv Logs/camera_overlay_pc.csv
 ```
 
 - Skrypt: `src/camera_hour_overlay_mlp.py`
@@ -155,6 +159,9 @@ python -m src.camera_hour_overlay --cam 0 --width 1280 --height 720
 ```bash
 python -m src.camera_hour_overlay_mlp --cam 0 --width 1280 --height 720
 python -m src.camera_hour_overlay_mlp --cam 0 --use_fallback
+
+# logowanie predykcji (domyślnie do camera_hour_overlay_mlp_log.txt)
+python -m src.camera_hour_overlay_mlp --cam 0 --log-csv ""
 ```
 
 ---
@@ -170,10 +177,14 @@ python -m src.camera_hour_overlay_rpi \
 	--model models/baseline_rgb_model.pkl \
 	--cam 0 --width 1280 --height 720 \
 	--interval 2.0 --output ~/www/camera_hour.jpg
+
+# domyślne logowanie do camera_hour_overlay_rpi_log.txt
+python -m src.camera_hour_overlay_rpi --model models/baseline_rgb_model.pkl --log-csv ""
 ```
 
 - Skrypt: `src/camera_hour_overlay_mlp_rpi.py`
-- Opis: wariant RPi korzystający z MLP robust (domyślnie) lub fallback RF advanced.
+- Opis: wariant RPi korzystający z MLP robust (domyślnie) lub fallback RF advanced,
+	z możliwością użycia CNN.
 
 ```bash
 python -m src.camera_hour_overlay_mlp_rpi \
@@ -181,4 +192,7 @@ python -m src.camera_hour_overlay_mlp_rpi \
 	--interval 2.0 --output ~/www/camera_hour.jpg
 
 python -m src.camera_hour_overlay_mlp_rpi --cam 0 --use_fallback
+
+# domyślne logowanie do camera_hour_overlay_mlp_rpi_log.txt
+python -m src.camera_hour_overlay_mlp_rpi --cam 0 --log-csv ""
 ```
