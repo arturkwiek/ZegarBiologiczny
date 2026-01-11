@@ -17,6 +17,7 @@
 #     4. Dopisywanie rekordów do labels.csv (filepath, hour, datetime)
 #     5. Łagodne zakończenie pracy po przerwaniu przez użytkownika
 
+import argparse
 import cv2
 import time
 from datetime import datetime
@@ -24,22 +25,53 @@ from pathlib import Path
 
 from src.settings import DATA_DIR, LABELS_CSV
 
-CAMERA_INDEX = 0
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--cam", type=int, default=0, help="Indeks kamerki (zwykle 0)")
+    parser.add_argument("--width", type=int, default=1280, help="Sugerowana szerokosc obrazu")
+    parser.add_argument("--height", type=int, default=720, help="Sugerowana wysokosc obrazu")
+    parser.add_argument(
+        "--interval",
+        type=float,
+        default=1.0,
+        help="Odstep czasu miedzy kolejnymi zdjeciami [s] (domyslnie 1.0)",
+    )
+    parser.add_argument(
+        "--temp-copy",
+        type=str,
+        default="~/www/camera_hour.jpg",
+        help="Sciezka do pliku tymczasowego z kopia zdjecia (pusty napis aby wylaczyc)",
+    )
+    return parser.parse_args()
 
 
 def main():
+    args = parse_args()
+
     output_dir: Path = DATA_DIR.resolve()
     csv_path: Path = LABELS_CSV.resolve()
+    temp_copy_path: Path | None = None
+    if args.temp_copy:
+        temp_copy_path = Path(args.temp_copy).expanduser().resolve()
 
     # --- przygotowanie katalogów ---
     output_dir.mkdir(parents=True, exist_ok=True)
     csv_path.parent.mkdir(parents=True, exist_ok=True)
+    if temp_copy_path is not None:
+        temp_copy_path.parent.mkdir(parents=True, exist_ok=True)
 
     # --- kamera ---
-    cap = cv2.VideoCapture(CAMERA_INDEX)
+    cap = cv2.VideoCapture(args.cam)
     if not cap.isOpened():
-        print("❌ Nie można otworzyć kamery.")
+        print(f"❌ Nie można otworzyć kamery o indeksie {args.cam}.")
         return
+
+    # próbujemy wymusić rozdzielczość (nie każda kamerka to respektuje)
+    if args.width > 0:
+        cap.set(cv2.CAP_PROP_FRAME_WIDTH, int(args.width))
+    if args.height > 0:
+        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, int(args.height))
 
     print("▶ Start zbierania danych (Ctrl+C aby przerwać)")
     print(f"Dataset : {output_dir}")
@@ -84,7 +116,14 @@ def main():
 
             print(f"✔ {relative_path} (godzina={hour_int})")
 
-            time.sleep(1)
+            if temp_copy_path is not None:
+                suffix = temp_copy_path.suffix or ".jpg"
+                base_name = temp_copy_path.stem if temp_copy_path.suffix else temp_copy_path.name
+                tmp_copy = temp_copy_path.parent / f".{base_name}.tmp{suffix}"
+                cv2.imwrite(str(tmp_copy), frame)
+                tmp_copy.replace(temp_copy_path)
+
+            time.sleep(max(0.0, float(args.interval)))
 
     except KeyboardInterrupt:
         print("\n⏹ Przerwano przez użytkownika.")

@@ -196,3 +196,66 @@ python -m src.camera_hour_overlay_mlp_rpi --cam 0 --use_fallback
 # domyślne logowanie do camera_hour_overlay_mlp_rpi_log.txt
 python -m src.camera_hour_overlay_mlp_rpi --cam 0 --log-csv ""
 ```
+
+---
+
+### 8. Zbieranie nowego datasetu (nowa kamera)
+
+- Skrypt: `MLDailyHourClock.py`
+- Opis: ciągłe zbieranie obrazów z kamery do `dataset/YYYY/MM/DD/HH` i dopisywanie etykiet do `labels.csv`.
+
+Przykład zbierania danych z nowej kamery (np. indeks 1) w roku 2026:
+
+1. Ustaw rok/katalog danych w `src/settings.py`, np.:
+
+	 ```python
+	 DATA_DIR = Path("./dataset/2026/")
+	 LABELS_CSV = Path("./dataset/2026/labels.csv")
+	 ```
+
+2. Uruchom zbieranie, podając indeks kamery i rozdzielczość:
+
+	 ```bash
+	 python MLDailyHourClock.py \
+		 --cam 1 \
+		 --width 1280 --height 720 \
+		 --interval 1.0
+	 ```
+
+- Parametry:
+	- `--cam` – indeks kamery (0, 1, ...),
+	- `--width`, `--height` – docelowa rozdzielczość żądana od sterownika kamery,
+	- `--interval` – odstęp w sekundach między kolejnymi zdjęciami (domyślnie 1.0).
+	- `--temp-copy` – opcjonalna ścieżka do „ostatniej klatki” (JPG) zapisywanej atomowo (np. do serwera WWW na RPi); ustaw pusty napis, aby wyłączyć.
+
+Przykład z kopią ostatniej klatki do katalogu WWW na RPi:
+
+```bash
+python MLDailyHourClock.py \
+	--cam 0 --width 1280 --height 720 --interval 1.0 \
+	--temp-copy ~/www/camera_hour.jpg
+```
+
+Po zebraniu nowego datasetu możesz uruchomić pełny pipeline (`./run_full_pipeline.sh`),
+który wykorzysta nowy `DATA_DIR` i `LABELS_CSV` z `src/settings.py`.
+
+---
+
+### 9. Synchronizacja datasetu z RPi na Windows/PC (rsync)
+
+- Skrypt: `synchro_dataset.sh`
+- Opis: worker ingestu RPi → Windows, który przenosi gotowe pliki do lokalnego staging i synchronizuje je `rsync` (z retry i logowaniem).
+
+Minimalna konfiguracja w `synchro_dataset.sh`:
+
+- `SRC_DIR` – źródło na RPi (katalog `dataset`),
+- `DEST_USER`, `DEST_HOST`, `DEST_PATH` – host docelowy (np. Windows z SSH),
+- `PASS`/`SSHPASS` lub `SSH_IDENTITY_FILE` – uwierzytelnienie,
+- `SCAN_MODE` – przy bardzo dużych datasetach ustaw `recent-hours`, żeby nie skanować całych setek tysięcy plików w każdej pętli,
+- `SCAN_RECENT_HOURS` – ile ostatnich godzin skanować w trybie `recent-hours`.
+
+Uruchomienie na RPi (najczęściej w `tmux`):
+
+```bash
+bash synchro_dataset.sh
+```

@@ -25,6 +25,7 @@ reports/*
 # ===== OS / editor =====
 .DS_Store
 Thumbs.db
+.github/
 .vscode/
 .idea/
 

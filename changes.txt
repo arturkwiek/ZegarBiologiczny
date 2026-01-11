@@ -1,0 +1,112 @@
+diff --git a/MLDailyHourClock.py b/MLDailyHourClock.py
+index c8a366f..4b97483 100644
+--- a/MLDailyHourClock.py
++++ b/MLDailyHourClock.py
+@@ -17,6 +17,7 @@
+ #     4. Dopisywanie rekordów do labels.csv (filepath, hour, datetime)
+ #     5. Łagodne zakończenie pracy po przerwaniu przez użytkownika
+ 
++import argparse
+ import cv2
+ import time
+ from datetime import datetime
+@@ -24,10 +25,24 @@ from pathlib import Path
+ 
+ from src.settings import DATA_DIR, LABELS_CSV
+ 
+-CAMERA_INDEX = 0
++
++def parse_args() -> argparse.Namespace:
++    parser = argparse.ArgumentParser()
++    parser.add_argument("--cam", type=int, default=0, help="Indeks kamerki (zwykle 0)")
++    parser.add_argument("--width", type=int, default=1280, help="Sugerowana szerokosc obrazu")
++    parser.add_argument("--height", type=int, default=720, help="Sugerowana wysokosc obrazu")
++    parser.add_argument(
++        "--interval",
++        type=float,
++        default=1.0,
++        help="Odstep czasu miedzy kolejnymi zdjeciami [s] (domyslnie 1.0)",
++    )
++    return parser.parse_args()
+ 
+ 
+ def main():
++    args = parse_args()
++
+     output_dir: Path = DATA_DIR.resolve()
+     csv_path: Path = LABELS_CSV.resolve()
+ 
+@@ -36,11 +51,17 @@ def main():
+     csv_path.parent.mkdir(parents=True, exist_ok=True)
+ 
+     # --- kamera ---
+-    cap = cv2.VideoCapture(CAMERA_INDEX)
++    cap = cv2.VideoCapture(args.cam)
+     if not cap.isOpened():
+-        print("❌ Nie można otworzyć kamery.")
++        print(f"❌ Nie można otworzyć kamery o indeksie {args.cam}.")
+         return
+ 
++    # próbujemy wymusić rozdzielczość (nie każda kamerka to respektuje)
++    if args.width > 0:
++        cap.set(cv2.CAP_PROP_FRAME_WIDTH, int(args.width))
++    if args.height > 0:
++        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, int(args.height))
++
+     print("▶ Start zbierania danych (Ctrl+C aby przerwać)")
+     print(f"Dataset : {output_dir}")
+     print(f"Labels  : {csv_path}")
+@@ -84,7 +105,7 @@ def main():
+ 
+             print(f"✔ {relative_path} (godzina={hour_int})")
+ 
+-            time.sleep(1)
++            time.sleep(max(0.0, float(args.interval)))
+ 
+     except KeyboardInterrupt:
+         print("\n⏹ Przerwano przez użytkownika.")
+diff --git a/docs/quick_guide.md b/docs/quick_guide.md
+index 582f98b..0613195 100644
+--- a/docs/quick_guide.md
++++ b/docs/quick_guide.md
+@@ -195,4 +195,37 @@ python -m src.camera_hour_overlay_mlp_rpi --cam 0 --use_fallback
+ 
+ # domyślne logowanie do camera_hour_overlay_mlp_rpi_log.txt
+ python -m src.camera_hour_overlay_mlp_rpi --cam 0 --log-csv ""
+-```
+\ No newline at end of file
++```
++
++---
++
++### 8. Zbieranie nowego datasetu (nowa kamera)
++
++- Skrypt: `MLDailyHourClock.py`
++- Opis: ciągłe zbieranie obrazów z kamery do `dataset/YYYY/MM/DD/HH` i dopisywanie etykiet do `labels.csv`.
++
++Przykład zbierania danych z nowej kamery (np. indeks 1) w roku 2026:
++
++1. Ustaw rok/katalog danych w `src/settings.py`, np.:
++
++	 ```python
++	 DATA_DIR = Path("./dataset/2026/")
++	 LABELS_CSV = Path("./dataset/2026/labels.csv")
++	 ```
++
++2. Uruchom zbieranie, podając indeks kamery i rozdzielczość:
++
++	 ```bash
++	 python MLDailyHourClock.py \
++		 --cam 1 \
++		 --width 1280 --height 720 \
++		 --interval 1.0
++	 ```
++
++- Parametry:
++	- `--cam` – indeks kamery (0, 1, ...),
++	- `--width`, `--height` – docelowa rozdzielczość żądana od sterownika kamery,
++	- `--interval` – odstęp w sekundach między kolejnymi zdjęciami (domyślnie 1.0).
++
++Po zebraniu nowego datasetu możesz uruchomić pełny pipeline (`./run_full_pipeline.sh`),
++który wykorzysta nowy `DATA_DIR` i `LABELS_CSV` z `src/settings.py`.
+\ No newline at end of file
