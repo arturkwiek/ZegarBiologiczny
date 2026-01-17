@@ -14,6 +14,13 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SRC_DIR="/home/vision/workspace/ZegarBiologiczny/dataset"
 STAGING_DIR="/home/vision/workspace/ZegarBiologiczny/.staging_dataset"
 
+# Tryb pracy staging:
+# - move: przenoś pliki z dataset do staging (dataset nie trzyma historii)
+# - copy: kopiuj pliki do staging (dataset przyrasta i zostaje źródłem prawdy)
+#
+# Jeśli chcesz, żeby dataset przyrastał na RPi, użyj "copy".
+STAGE_MODE="move"
+
 DEST_USER="vision"
 DEST_HOST="192.168.0.199"
 DEST_PATH="/g/RPiZegarBiologiczny/dataset"
@@ -22,7 +29,7 @@ DEST_PATH="/g/RPiZegarBiologiczny/dataset"
 PASS="root"
 SSH_IDENTITY_FILE=""
 
-LOOP_SLEEP_SEC=60            # częstotliwość prób gdy brak pracy lub host offline
+LOOP_SLEEP_SEC=600            # częstotliwość prób gdy brak pracy lub host offline
 RETRY_BACKOFF_SEC=30         # opóźnienie po błędzie transferu
 MIN_FILE_AGE_SEC=30          # bufor czasowy, by nie chwytać plików w trakcie zapisu
 RSYNC_TIMEOUT_SEC=60         # odcina wiszące sesje przy śpiącym Windows
@@ -67,6 +74,10 @@ RSYNC_SKIP_COMPRESS_EXTS="jpg,jpeg,png,gif,webp,mp4,mov,avi,mkv,zip,gz,bz2,xz,7z
 LOG_FILE="${SCRIPT_DIR}/rsync_ingest_dataset.log"
 LOCK_FILE="/tmp/synchro_dataset.lock"
 
+# Indeks relatywnych ścieżek plików, które zostały POTWIERDZENIE wysłane (rsync exit 0)
+# Używane w trybie STAGE_MODE=copy, żeby nie kopiować w kółko starych plików do staging.
+SENT_INDEX_FILE="${SCRIPT_DIR}/.synchro_sent_files.txt"
+
 EXCLUDE_GLOBS=("*.tmp" "*.part" "*.swp" ".DS_Store" "Thumbs.db" "*/.rsync-partial/*")
 
 SSH_OPTS=("-o" "StrictHostKeyChecking=no" "-o" "UserKnownHostsFile=/home/vision/.ssh/known_hosts" "-o" "ConnectTimeout=10" "-o" "ServerAliveInterval=15" "-o" "ServerAliveCountMax=3")
@@ -92,6 +103,9 @@ touch "$LOG_FILE"
 log() {
   printf '[%s] %s\n' "$(date '+%F %T')" "$*" | tee -a "$LOG_FILE"
 }
+
+# Diagnostyka: jeśli cokolwiek wybuchnie przy set -e, chcemy widzieć co i gdzie.
+trap 'log "ERROR: line=${LINENO} status=$? cmd=${BASH_COMMAND}"' ERR
 
 log_rsync_line() {
   local line=$1
@@ -188,7 +202,34 @@ cleanup_empty_dirs() {
 }
 
 staging_has_payload() {
-  find "$STAGING_DIR" -mindepth 1 ! -path '*/.rsync-partial/*' -print -quit >/dev/null 2>&1
+  find "$STAGING_DIR" -mindepth 1 -type f ! -path '*/.rsync-partial/*' -print -quit >/dev/null 2>&1
+}
+
+ensure_sent_index() {
+  # Utrzymuj plik w formie posortowanej bez duplikatów.
+  mkdir -p "$(dirname -- "$SENT_INDEX_FILE")" 2>/dev/null || true
+  touch "$SENT_INDEX_FILE"
+  sort -u "$SENT_INDEX_FILE" -o "$SENT_INDEX_FILE" 2>/dev/null || true
+}
+
+record_sent_from_staging() {
+  # Po POTWIERDZONYM transferze (rsync exit 0) zapisujemy rel-pathy plików ze staging
+  # do indeksu "już wysłane". Dzięki temu w STAGE_MODE=copy nie kopiujemy ich ponownie.
+  ensure_sent_index
+
+  local prefix rel base
+  prefix="${STAGING_DIR%/}/"
+  while IFS= read -r -d '' file; do
+    rel=${file#"$prefix"}
+    base=$(basename -- "$file")
+    # labels.csv jest nadpisywalny/appendowany — nie traktujemy go jako "raz wysłany".
+    if [[ "$base" == "labels.csv" ]]; then
+      continue
+    fi
+    printf '%s\n' "$rel" >>"$SENT_INDEX_FILE"
+  done < <(find "$STAGING_DIR" -type f ! -path '*/.rsync-partial/*' -print0) || true
+
+  sort -u "$SENT_INDEX_FILE" -o "$SENT_INDEX_FILE" 2>/dev/null || true
 }
 
 ensure_remote_path() {
@@ -327,11 +368,96 @@ compute_scan_roots() {
 }
 
 stage_ready_items() {
+  # Wrapper: nie pozwól, żeby pojedynczy błąd (np. mktemp/comm/sort/find) ubił cały worker.
+  local errexit_was_set=0
+  case $- in
+    *e*) errexit_was_set=1 ;;
+  esac
+  set +e
+  _stage_ready_items_impl
+  local rc=$?
+  (( errexit_was_set )) && set -e
+  return $rc
+}
+
+_stage_ready_items_impl() {
   STAGED_LAST_COUNT=0
-  local now rel dest dest_dir mtime prefix
+  local now rel dest dest_dir mtime prefix base tmp_copy
   now=$(date +%s)
   prefix="${SRC_DIR%/}/"
   compute_scan_roots
+
+  if [[ "$STAGE_MODE" == "copy" ]]; then
+    ensure_sent_index
+
+    local tmp_candidates tmp_candidates_sorted tmp_new rel_path src_file
+    tmp_candidates=$(mktemp) || { log "WARN: mktemp failed (tmp_candidates)"; return 1; }
+    tmp_candidates_sorted=$(mktemp) || { log "WARN: mktemp failed (tmp_candidates_sorted)"; rm -f "$tmp_candidates"; return 1; }
+    tmp_new=$(mktemp) || { log "WARN: mktemp failed (tmp_new)"; rm -f "$tmp_candidates" "$tmp_candidates_sorted"; return 1; }
+
+    # 1) Zbierz rel-pathy kandydatów (z recent-hours/full) i osobno obsłuż labels.csv.
+    while IFS= read -r -d '' file; do
+      rel=${file#"$prefix"}
+      if should_exclude "$rel"; then
+        continue
+      fi
+      mtime=$(stat -c %Y "$file") || continue
+      if (( now - mtime < MIN_FILE_AGE_SEC )); then
+        continue
+      fi
+
+      base=$(basename -- "$file")
+      if [[ "$base" == "labels.csv" ]]; then
+        dest="$STAGING_DIR/$rel"
+        dest_dir=$(dirname -- "$dest")
+        mkdir -p "$dest_dir" || true
+        tmp_copy="${dest}.tmp.$$"
+        rm -f "$tmp_copy" || true
+        if cp -f -- "$file" "$tmp_copy" && mv -f -- "$tmp_copy" "$dest"; then
+          ((STAGED_LAST_COUNT++))
+        else
+          rm -f "$tmp_copy" || true
+          log "WARN: Nie mogę skopiować labels.csv do staging: $file"
+        fi
+        continue
+      fi
+
+      printf '%s\n' "$rel" >>"$tmp_candidates"
+    done < <(find "${SCAN_ROOTS[@]}" -type f ! -path '*/.rsync-partial/*' -print0 2>/dev/null) || true
+
+    # 2) Odfiltruj tylko te, których NIE ma w SENT_INDEX_FILE.
+    LC_ALL=C sort -u "$tmp_candidates" >"$tmp_candidates_sorted" 2>/dev/null || true
+    LC_ALL=C comm -23 "$tmp_candidates_sorted" "$SENT_INDEX_FILE" >"$tmp_new" 2>/dev/null || true
+
+    # 3) Skopiuj brakujące pliki do staging (atomowo), ale nie nadpisuj jeśli już staged.
+    while IFS= read -r rel_path; do
+      [[ -n "$rel_path" ]] || continue
+      src_file="$SRC_DIR/$rel_path"
+      [[ -f "$src_file" ]] || continue
+
+      dest="$STAGING_DIR/$rel_path"
+      if [[ -f "$dest" ]]; then
+        continue
+      fi
+
+      dest_dir=$(dirname -- "$dest")
+      mkdir -p "$dest_dir" || true
+
+      tmp_copy="${dest}.tmp.$$"
+      rm -f "$tmp_copy" || true
+      if cp -f -- "$src_file" "$tmp_copy" && mv -f -- "$tmp_copy" "$dest"; then
+        ((STAGED_LAST_COUNT++))
+      else
+        rm -f "$tmp_copy" || true
+        log "WARN: Nie mogę skopiować pliku do staging: $src_file"
+      fi
+    done <"$tmp_new"
+
+    rm -f "$tmp_candidates" "$tmp_candidates_sorted" "$tmp_new" || true
+    return 0
+  fi
+
+  # STAGE_MODE=move (dotychczasowe zachowanie)
   while IFS= read -r -d '' file; do
     rel=${file#"$prefix"}
     if should_exclude "$rel"; then
@@ -343,17 +469,37 @@ stage_ready_items() {
     fi
     dest="$STAGING_DIR/$rel"
     dest_dir=$(dirname -- "$dest")
-    mkdir -p "$dest_dir"
+    mkdir -p "$dest_dir" || true
+
+    # labels.csv jest aktywnie dopisywany przez collector (append). Nie przenosimy go z SRC_DIR,
+    # tylko kopiujemy do staging atomowo, żeby nie zaburzać zbierania danych.
+    base=$(basename -- "$file")
+    if [[ "$base" == "labels.csv" ]]; then
+      tmp_copy="${dest}.tmp.$$"
+      rm -f "$tmp_copy" || true
+      if cp -f -- "$file" "$tmp_copy" && mv -f -- "$tmp_copy" "$dest"; then
+        ((STAGED_LAST_COUNT++))
+      else
+        rm -f "$tmp_copy" || true
+        log "WARN: Nie mogę skopiować labels.csv do staging: $file"
+      fi
+      continue
+    fi
+
     if mv "$file" "$dest"; then
       ((STAGED_LAST_COUNT++))
     else
       log "WARN: Nie mogę przenieść pliku do staging: $file"
     fi
-  done < <(find "${SCAN_ROOTS[@]}" -type f ! -path '*/.rsync-partial/*' -print0) || true
+  done < <(find "${SCAN_ROOTS[@]}" -type f ! -path '*/.rsync-partial/*' -print0 2>/dev/null) || true
   cleanup_empty_dirs "$SRC_DIR"
+  return 0
 }
 
 purge_staging_after_success() {
+  if [[ "$STAGE_MODE" == "copy" ]]; then
+    record_sent_from_staging
+  fi
   local tmp="${STAGING_DIR}.purge.$$"
   rm -rf "$tmp"
   mv "$STAGING_DIR" "$tmp"

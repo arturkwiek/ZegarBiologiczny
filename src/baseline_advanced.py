@@ -7,7 +7,7 @@
 #     - Używa wybranych kolumn cech (r_mean, g_mean, b_mean, r_std, g_std, b_std, s_mean, v_mean)
 #     - Dzieli dane na zbiór treningowy i testowy
 #     - Trenuje kilka modeli klasyfikacyjnych (LogisticRegression, KNN, RandomForest, GradientBoosting)
-#     - Wybiera model o najwyższym accuracy i wyświetla szczegółowe metryki
+#     - Wybiera model o najw\|yższym accuracy i wyświetla szczegółowe metryki
 
 # Zadania realizowane przez skrypt:
 #     1. Wczytanie cech rozszerzonych i przygotowanie macierzy X oraz etykiet godzin y
