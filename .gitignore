@@ -18,10 +18,6 @@ labels.csv
 # ===== Notebooks =====
 .ipynb_checkpoints/
 
-# ===== Reports / generated outputs =====
-reports/*
-!reports/.gitkeep
-
 # ===== OS / editor =====
 .DS_Store
 Thumbs.db
