@@ -30,6 +30,8 @@ Ostatecznie w wyniku tej paromiesięcznej pracy wygenerowane zostało:
 
 [Podział skryptów i pipeline — zobacz: docs/scripts_groups.md](../docs/scripts_groups.md)
 
+Oczywiście w trakcie prac i analiz powstało również szereg dodatkowych ostatecznie zbędnych plików. Jednak dokumentują one w pewien sposób proces rozwoju projektu. 
+
 # 5. Trenowanie
 - Trenowanie odbywało się wielotopowo w miarę przerostu kodu i danych wielokrotnie realizowane od zera aby ocenić jakość, przebieg i wyniki takiego trenowania.
 - W końcowej fazie przygotowany został w ogóle pipeline trenowania, który automatyzował cały ten proces. 
