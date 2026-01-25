@@ -12,5 +12,5 @@
 
 from pathlib import Path
 
-DATA_DIR = Path("./dataset/2025/")
-LABELS_CSV = Path("./dataset/2025/labels.csv")
+DATA_DIR = Path("./dataset/2026/")
+LABELS_CSV = Path("./dataset/2026/labels.csv")
